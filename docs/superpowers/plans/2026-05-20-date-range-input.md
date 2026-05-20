@@ -217,13 +217,13 @@ export type DateRange = [Date | null, Date | null];
 /** Which end of the range an interaction targets. */
 export type Boundary = 'start' | 'end';
 
-/** A named preset shown in the shortcuts panel. */
+/** A named preset shown in the shortcuts panel. Both ends are concrete. */
 export interface Shortcut {
   label: string;
-  range: DateRange;
+  range: [Date, Date];
 }
 
-/** Every styleable element of the component. */
+/** Every styleable element and state modifier of the component. */
 export type Slot =
   | 'root' | 'inputGroup' | 'input' | 'inputStart' | 'inputEnd'
   | 'inputInvalid' | 'separator'
@@ -238,6 +238,7 @@ export type Slot =
 /** Slot -> Tailwind class string overrides. */
 export type ClassNames = Partial<Record<Slot, string>>;
 
+/** Props for the top-level DateRangeInput component. */
 export interface DateRangeInputProps {
   value?: DateRange;
   defaultValue?: DateRange;
