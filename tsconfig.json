@@ -14,7 +14,10 @@
     "declaration": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "paths": {
+      "bp-mui-date-range-picker": ["./src/index.ts"]
+    }
   },
   "include": ["src", "test", "playground"]
 }
