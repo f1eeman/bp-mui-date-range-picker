@@ -32,10 +32,15 @@ describe('swapIfNeeded', () => {
     const a = new Date(2026, 0, 10);
     expect(swapIfNeeded([a, null])).toEqual([a, null]);
   });
+  it('leaves a range with a null start untouched (valid partial state)', () => {
+    const b = new Date(2026, 0, 20);
+    expect(swapIfNeeded([null, b])).toEqual([null, b]);
+  });
 });
 
 describe('isSingleDay', () => {
   it('is true when both ends fall on the same day', () => {
+    // times differ (9h vs 18h) but the calendar day matches
     expect(isSingleDay([new Date(2026, 0, 10, 9), new Date(2026, 0, 10, 18)])).toBe(true);
   });
   it('is false for different days', () => {
