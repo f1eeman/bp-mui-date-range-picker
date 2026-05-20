@@ -37,6 +37,14 @@ describe('DateInputField', () => {
     expect(input).toHaveAttribute('aria-invalid', 'true');
   });
 
+  it('commits a parsed date on Enter', async () => {
+    const onCommit = vi.fn();
+    render(<Harness onCommit={onCommit} />);
+    const input = screen.getByPlaceholderText('start');
+    await userEvent.type(input, '2026-05-20{Enter}');
+    expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20));
+  });
+
   it('commits null when cleared', async () => {
     const onCommit = vi.fn();
     render(<Harness onCommit={onCommit} />);
