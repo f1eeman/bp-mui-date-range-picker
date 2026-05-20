@@ -8,7 +8,6 @@ describe('useDateRangeInput', () => {
   it('starts empty when no value is given', () => {
     const { result } = renderHook(() => useDateRangeInput({}));
     expect(result.current.range).toEqual([null, null]);
-    expect(result.current.focusedBoundary).toBe('start');
   });
 
   it('initialises from defaultValue (uncontrolled)', () => {
@@ -41,12 +40,6 @@ describe('useDateRangeInput', () => {
     const { result } = renderHook(() => useDateRangeInput({ onChange }));
     act(() => result.current.setRange([d(20), d(10)]));
     expect(result.current.range).toEqual([d(10), d(20)]);
-  });
-
-  it('tracks the focused boundary', () => {
-    const { result } = renderHook(() => useDateRangeInput({}));
-    act(() => result.current.setFocusedBoundary('end'));
-    expect(result.current.focusedBoundary).toBe('end');
   });
 
   it('rejects a both-ends-set single-day range by default', () => {

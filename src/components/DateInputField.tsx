@@ -10,6 +10,8 @@ export interface DateInputFieldProps {
   onFocus: () => void;
   placeholder?: string;
   disabled?: boolean;
+  /** Optional gate: a parsed date for which this returns false is treated as invalid and not committed. */
+  validate?: (date: Date) => boolean;
   /** Extra slot applied alongside `input`: 'inputStart' or 'inputEnd'. */
   sideSlot?: Extract<Slot, 'inputStart' | 'inputEnd'>;
   classNames?: ClassNames;
@@ -18,7 +20,7 @@ export interface DateInputFieldProps {
 /** A single text field that parses its value into a Date on blur / Enter. */
 export function DateInputField({
   value, parsing, onCommit, onFocus,
-  placeholder, disabled, sideSlot, classNames,
+  placeholder, disabled, validate, sideSlot, classNames,
 }: DateInputFieldProps) {
   const [text, setText] = useState<string>(parsing.format(value));
   const [invalid, setInvalid] = useState(false);
@@ -43,8 +45,12 @@ export function DateInputField({
     }
     const parsed = parsing.parse(text);
     if (parsed) {
-      setInvalid(false);
-      onCommit(parsed);
+      if (validate && !validate(parsed)) {
+        setInvalid(true);
+      } else {
+        setInvalid(false);
+        onCommit(parsed);
+      }
     } else {
       setInvalid(true);
     }

@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { DateRange, DateRangeInputProps, Shortcut } from './types';
 import { useDateRangeInput } from './hooks/useDateRangeInput';
 import { useDateParsing } from './hooks/useDateParsing';
+import { isWithinBounds } from './utils/dateRange';
 import { createDefaultShortcuts } from './utils/shortcuts';
 import { mergeSlot } from './utils/mergeClassNames';
+import { dateMatchModifiers } from 'react-day-picker';
 import { Popover } from './components/Popover';
 import { RangeCalendar } from './components/RangeCalendar';
 import { DateInputField } from './components/DateInputField';
@@ -33,6 +35,15 @@ export function DateRangeInput(props: DateRangeInputProps) {
   const parsing = useDateParsing({ formatDate, parseDate, locale });
   const presets = useMemo(() => resolveShortcuts(shortcuts), [shortcuts]);
 
+  const validateDate = useCallback(
+    (date: Date): boolean => {
+      if (!isWithinBounds(date, minDate, maxDate)) return false;
+      if (disabledDays && dateMatchModifiers(date, disabledDays)) return false;
+      return true;
+    },
+    [minDate, maxDate, disabledDays],
+  );
+
   const handleCalendarChange = (range: DateRange) => {
     state.setRange(range);
     if (closeOnSelection && range[0] && range[1]) setOpen(false);
@@ -44,9 +55,10 @@ export function DateRangeInput(props: DateRangeInputProps) {
         value={state.range[0]}
         parsing={parsing}
         onCommit={(d) => state.setBoundary('start', d)}
-        onFocus={() => { state.setFocusedBoundary('start'); setOpen(true); }}
+        onFocus={() => setOpen(true)}
         placeholder={placeholder?.start}
         disabled={disabled}
+        validate={validateDate}
         sideSlot="inputStart"
         classNames={classNames}
       />
@@ -55,9 +67,10 @@ export function DateRangeInput(props: DateRangeInputProps) {
         value={state.range[1]}
         parsing={parsing}
         onCommit={(d) => state.setBoundary('end', d)}
-        onFocus={() => { state.setFocusedBoundary('end'); setOpen(true); }}
+        onFocus={() => setOpen(true)}
         placeholder={placeholder?.end}
         disabled={disabled}
+        validate={validateDate}
         sideSlot="inputEnd"
         classNames={classNames}
       />
