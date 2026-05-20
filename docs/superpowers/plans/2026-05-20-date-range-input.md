@@ -763,6 +763,24 @@ describe('useDateRangeInput', () => {
     act(() => result.current.setFocusedBoundary('end'));
     expect(result.current.focusedBoundary).toBe('end');
   });
+
+  it('rejects a both-ends-set single-day range by default', () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() => useDateRangeInput({ onChange }));
+    act(() => result.current.setRange([d(10), d(10)]));
+    expect(result.current.range).toEqual([null, null]); // commit rejected
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('allows a single-day range when allowSingleDayRange is set', () => {
+    const onChange = vi.fn();
+    const { result } = renderHook(() =>
+      useDateRangeInput({ onChange, allowSingleDayRange: true }),
+    );
+    act(() => result.current.setRange([d(10), d(10)]));
+    expect(result.current.range).toEqual([d(10), d(10)]);
+    expect(onChange).toHaveBeenCalledWith([d(10), d(10)]);
+  });
 });
 ```
 
@@ -778,12 +796,14 @@ Expected: FAIL — cannot resolve `./useDateRangeInput`.
 ```ts
 import { useCallback, useState } from 'react';
 import type { Boundary, DateRange } from '../types';
-import { swapIfNeeded } from '../utils/dateRange';
+import { isSingleDay, swapIfNeeded } from '../utils/dateRange';
 
 export interface UseDateRangeInputOptions {
   value?: DateRange;
   defaultValue?: DateRange;
   onChange?: (range: DateRange) => void;
+  /** When false (default), a both-ends-set single-day range is not committed. */
+  allowSingleDayRange?: boolean;
 }
 
 export interface DateRangeInputState {
@@ -800,7 +820,7 @@ export interface DateRangeInputState {
  * ordered start <= end.
  */
 export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInputState {
-  const { value, defaultValue, onChange } = opts;
+  const { value, defaultValue, onChange, allowSingleDayRange } = opts;
   const isControlled = value !== undefined;
 
   const [internal, setInternal] = useState<DateRange>(defaultValue ?? [null, null]);
@@ -811,10 +831,12 @@ export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInpu
   const commit = useCallback(
     (next: DateRange) => {
       const ordered = swapIfNeeded(next);
+      // Reject a both-ends-set single-day range unless explicitly allowed.
+      if (!allowSingleDayRange && isSingleDay(ordered)) return;
       if (!isControlled) setInternal(ordered);
       onChange?.(ordered);
     },
-    [isControlled, onChange],
+    [isControlled, onChange, allowSingleDayRange],
   );
 
   const setRange = useCallback((next: DateRange) => commit(next), [commit]);
@@ -835,7 +857,7 @@ export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInpu
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run src/hooks/useDateRangeInput.test.ts`
-Expected: PASS — all 6 tests green.
+Expected: PASS — all 8 tests green.
 
 - [ ] **Step 5: Commit**
 
@@ -1648,7 +1670,7 @@ export function DateRangeInput(props: DateRangeInputProps) {
   const {
     value, defaultValue, onChange,
     formatDate, parseDate, locale,
-    minDate, maxDate, disabledDays,
+    minDate, maxDate, disabledDays, allowSingleDayRange,
     contiguousCalendarMonths = true,
     shortcuts, timePrecision,
     closeOnSelection = true,
@@ -1656,7 +1678,7 @@ export function DateRangeInput(props: DateRangeInputProps) {
   } = props;
 
   const [open, setOpen] = useState(false);
-  const state = useDateRangeInput({ value, defaultValue, onChange });
+  const state = useDateRangeInput({ value, defaultValue, onChange, allowSingleDayRange });
   const parsing = useDateParsing({ formatDate, parseDate, locale });
   const presets = useMemo(() => resolveShortcuts(shortcuts), [shortcuts]);
 
@@ -1992,6 +2014,6 @@ git commit -m "docs: README"
 
 ## Self-Review Notes
 
-- **Spec coverage:** Stack (Task 1), date handling via date-fns (Tasks 3–6), package structure (all tasks), public API (Task 2 + Task 13), contiguous toggle (Task 9 + Task 13), slot styling (Task 5 + every component), data flow / controlled-uncontrolled (Task 7 + Task 13), error handling — invalid input / bounds / disabled / swap / single-day (Tasks 3, 9, 10), testing (every task). Hover-preview is delegated to react-day-picker (noted under File Structure and Task 9).
-- **`allowSingleDayRange`:** the prop is declared (Task 2) and reaches the consumer; v1 relies on `react-day-picker`'s native range selection, which already permits a one-day range. No extra enforcement task is needed — document this if stricter rejection is wanted later.
+- **Spec coverage:** Stack (Task 1), date handling via date-fns (Tasks 3–6), package structure (all tasks), public API (Task 2 + Task 13), contiguous toggle (Task 9 + Task 13), slot styling (Task 5 + every component), data flow / controlled-uncontrolled (Task 7 + Task 13), error handling — invalid input / bounds / disabled / swap / single-day (Tasks 3, 7, 9, 10), testing (every task). Hover-preview is delegated to react-day-picker (noted under File Structure and Task 9).
+- **`allowSingleDayRange`:** enforced centrally in `useDateRangeInput.commit` (Task 7) — every input path (text, shortcuts, calendar) commits through it, so a both-ends-set single-day range is rejected unless the prop is set. The prop is declared in Task 2 and threaded through `DateRangeInput` in Task 13.
 - **Type consistency:** `DateRange` tuple, `Slot`, `ClassNames`, `Boundary`, `DateParsing`, `DateRangeInputState` names are used identically across tasks.
