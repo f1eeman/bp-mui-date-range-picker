@@ -12,8 +12,6 @@ export interface UseDateRangeInputOptions {
 
 export interface DateRangeInputState {
   range: DateRange;
-  focusedBoundary: Boundary;
-  setFocusedBoundary: (b: Boundary) => void;
   setBoundary: (b: Boundary, date: Date | null) => void;
   setRange: (range: DateRange) => void;
 }
@@ -28,7 +26,6 @@ export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInpu
   const isControlled = value !== undefined;
 
   const [internal, setInternal] = useState<DateRange>(defaultValue ?? [null, null]);
-  const [focusedBoundary, setFocusedBoundary] = useState<Boundary>('start');
 
   const range: DateRange = isControlled ? value! : internal;
 
@@ -54,5 +51,5 @@ export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInpu
     [range, commit],
   );
 
-  return { range, focusedBoundary, setFocusedBoundary, setBoundary, setRange };
+  return { range, setBoundary, setRange };
 }
