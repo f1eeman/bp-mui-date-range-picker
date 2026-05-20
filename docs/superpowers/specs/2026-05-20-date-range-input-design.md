@@ -79,9 +79,11 @@ src/
 - **`DateRangeInput`** — только композиция: связывает хук состояния, два
   `DateInputField`, `Popover` с календарём. Date-логики не содержит.
 - **`useDateRangeInput`** — единственный держатель состояния диапазона:
-  значение `[start, end]`, какой инпут в фокусе (`focusedBoundary`), какую
-  границу редактируем, hover-превью диапазона. Поддерживает controlled и
-  uncontrolled режимы. Тестируется изолированно.
+  значение `[start, end]`. Прогоняет каждое изменение через `swapIfNeeded`
+  (порядок start <= end) и отклоняет single-day-диапазон, если не задан
+  `allowSingleDayRange`. Поддерживает controlled и uncontrolled режимы.
+  Тестируется изолированно. (Выбор границы при клике в календаре делегирован
+  `react-day-picker` — отдельное состояние `focusedBoundary` не понадобилось.)
 - **`useDateParsing`** — чистая логика: строка -> `Date | null` и обратно,
   через `formatDate`/`parseDate` из props или дефолты на `date-fns`.
 - **`RangeCalendar`** — обёртка `DayPicker` (`mode="range"`); маппит слоты
@@ -205,10 +207,12 @@ type Slot =
 сходятся в нём:
 
 - **Ввод текста:** `DateInputField` -> `useDateParsing` превращает строку в
-  `Date | null`. Валидный результат коммитится в ядро; невалидный — нет, поле
-  получает слот `inputInvalid`.
-- **Клик дня:** `RangeCalendar` (`rdp onSelect`) отдаёт обновлённый диапазон;
-  ядро решает, какую границу обновить, исходя из `focusedBoundary`.
+  `Date | null`. Дата проверяется на `minDate`/`maxDate` (`isWithinBounds`) и
+  `disabledDays` (`dateMatchModifiers` из rdp). Валидный результат коммитится
+  в ядро; невалидный или вне границ — нет, поле получает слот `inputInvalid`.
+- **Клик дня:** `RangeCalendar` (`rdp onSelect`) в режиме `mode="range"` сам
+  отслеживает, какую границу выбирает пользователь, и отдаёт обновлённый
+  диапазон; ядро коммитит его через `setRange`.
 - **Пресет:** `ShortcutsPanel` задаёт сразу обе границы; при `closeOnSelection`
   закрывает поповер.
 - **Время:** `TimePicker` мержит часы/минуты в `Date` соответствующей границы,
