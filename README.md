@@ -1,6 +1,6 @@
 # bp-mui-date-range-picker
 
-Blueprint-style `DateRangeInput` for React 19 with slot-based Tailwind styling.
+Blueprint-style `DateRangeInput` for React 19 with CSS-variable theming and slot overrides.
 
 ## Install
 
