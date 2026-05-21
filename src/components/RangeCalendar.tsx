@@ -1,38 +1,10 @@
 import { useState } from 'react';
-import { DayPicker, type DateRange as RdpRange, type Matcher, type DropdownProps } from 'react-day-picker';
+import { DayPicker, type DateRange as RdpRange, type Matcher } from 'react-day-picker';
 import 'react-day-picker/style.css';
 import type { Locale } from 'date-fns';
 import { addMonths } from 'date-fns';
 import type { ClassNames, DateRange } from '../types';
 import { mergeSlot } from '../utils/mergeClassNames';
-
-/**
- * A drop-in replacement for rdp's built-in `Dropdown` component that omits
- * the redundant `rdp-caption_label` span rdp renders next to each `<select>`.
- *
- * With `captionLayout="dropdown"` rdp's `Dropdown` renders:
- *   <span class="rdp-dropdown_root">
- *     <select …/>                          ← the real control
- *     <span class="rdp-caption_label">…</span>  ← decorative overlay (opacity trick)
- *   </span>
- *
- * This library styles the `<select>` directly as the visible control, so the
- * caption_label overlay is purely redundant and is suppressed here.
- */
-function DropdownWithoutLabel(props: DropdownProps): React.JSX.Element {
-  const { options, className, components, classNames, ...selectProps } = props;
-  return (
-    <span data-disabled={selectProps.disabled} className={classNames.dropdown_root}>
-      <components.Select className={className} {...selectProps}>
-        {options?.map(({ value, label, disabled }) => (
-          <components.Option key={value} value={value} disabled={disabled}>
-            {label}
-          </components.Option>
-        ))}
-      </components.Select>
-    </span>
-  );
-}
 
 export interface RangeCalendarProps {
   value: DateRange;
@@ -77,6 +49,10 @@ function rdpClassNames(classNames?: ClassNames): Record<string, string> {
     month_caption: mergeSlot('caption', classNames),   // UI.MonthCaption = "month_caption"
     dropdowns: mergeSlot('dropdowns', classNames),     // UI.Dropdowns = "dropdowns"
     dropdown: mergeSlot('dropdown', classNames),       // UI.Dropdown = "dropdown"
+    // rdp's dropdown hardcodes a redundant label span (text + chevron) next to
+    // each <select>; the styled <select> is this library's visible control, so
+    // the label is hidden via the `caption_label` classNames key.
+    caption_label: 'hidden',                           // UI.CaptionLabel = "caption_label"
     nav: mergeSlot('nav', classNames),                 // UI.Nav = "nav"
     button_previous: navBtn,                           // UI.PreviousMonthButton = "button_previous"
     button_next: navBtn,                               // UI.NextMonthButton = "button_next"
@@ -156,7 +132,6 @@ export function RangeCalendar({
     captionLayout: 'dropdown' as const,
     startMonth,
     endMonth,
-    components: { Dropdown: DropdownWithoutLabel },
     locale,
     classNames: rdpClassNames(classNames),
   };
