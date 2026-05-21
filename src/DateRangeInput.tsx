@@ -38,7 +38,8 @@ export function DateRangeInput(props: DateRangeInputProps) {
   // The popover is portalled outside `.drp-root` by FloatingPortal, so it can
   // not inherit the `--drp-*` theme tokens. Forward the resolved values onto
   // the panel when it opens. useLayoutEffect runs before paint — no unthemed
-  // flash.
+  // flash. Tokens are snapshotted once per open; a theme change while the
+  // popover stays open is not picked up until it reopens (accepted tradeoff).
   useLayoutEffect(() => {
     if (open && rootRef.current) {
       setPopoverTokens(readThemeTokens(rootRef.current));
