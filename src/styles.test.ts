@@ -27,6 +27,10 @@ describe('styles.css', () => {
     expect(css).toMatch(/:where\(\.drp-day\)\s*\{[^}]*color:\s*inherit/);
     // disabled needs a button-targeted rule — text-decoration/cursor do not
     // cross the <button> boundary.
-    expect(css).toContain(':where(.drp-day-disabled) :where(.drp-day)');
+    expect(css).toContain(':where(.drp-day-disabled .drp-day)');
+    // disabled strike-through must land on the button element
+    expect(css).toContain('text-decoration: line-through');
+    // .drp-calendar carries the default text color the button inherits
+    expect(css).toMatch(/:where\(\.drp-calendar\)\s*\{[^}]*color:\s*var\(--drp-fg\)/);
   });
 });
