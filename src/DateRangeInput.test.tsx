@@ -127,4 +127,22 @@ describe('DateRangeInput', () => {
     await userEvent.click(screen.getByPlaceholderText('from'));
     expect((await screen.findAllByRole('combobox')).length).toBeGreaterThanOrEqual(2);
   });
+
+  it('applies the drp-* base classes to its parts', () => {
+    const { container } = render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} />);
+    expect(container.querySelector('.drp-root')).not.toBeNull();
+    expect(container.querySelector('.drp-input')).not.toBeNull();
+  });
+
+  it('appends a consumer slot class onto the base class', () => {
+    render(
+      <DateRangeInput
+        placeholder={{ start: 'from', end: 'to' }}
+        classNames={{ input: 'my-custom-input' }}
+      />,
+    );
+    const input = screen.getByPlaceholderText('from');
+    expect(input.className).toContain('drp-input');
+    expect(input.className).toContain('my-custom-input');
+  });
 });

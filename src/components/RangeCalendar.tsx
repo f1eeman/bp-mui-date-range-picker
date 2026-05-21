@@ -32,42 +32,32 @@ function fromRdpRange(range: RdpRange | undefined): DateRange {
 }
 
 /**
- * Maps our slot overrides onto react-day-picker v9's classNames keys.
- * RDP v9 uses UI enum string values (e.g. "root", "nav", "day_button", etc.)
- * and DayFlag/SelectionState enum string values for day states.
- * The default class for each key is `rdp-${key}` — e.g. root → rdp-root.
+ * Maps the library's slot classes onto react-day-picker v9's classNames keys.
+ * The `rdp-root` extra is kept so a stable selector survives consumer overrides.
+ * `caption_label` is mapped to `drp-caption-label`, which `styles.css` hides.
+ * The nav buttons get side modifiers (`drp-nav-button--prev/--next`) that
+ * `styles.css` positions for `navLayout="around"`.
  */
 function rdpClassNames(classNames?: ClassNames): Record<string, string> {
   return {
-    // UI elements (UI enum values)
-    // Deliberately append 'rdp-root' so the stable selector works even when
-    // consumer overrides replace the default class. The default is also kept
-    // via mergeSlot so Tailwind classes merge correctly.
-    root: mergeSlot('calendar', classNames, 'rdp-root'), // UI.Root = "root"
-    month: mergeSlot('month', classNames),             // UI.Month = "month"
-    month_caption: mergeSlot('caption', classNames),   // UI.MonthCaption = "month_caption"
-    dropdowns: mergeSlot('dropdowns', classNames),     // UI.Dropdowns = "dropdowns"
-    dropdown: mergeSlot('dropdown', classNames),       // UI.Dropdown = "dropdown"
-    // rdp's dropdown hardcodes a redundant label span (text + chevron) next to
-    // each <select>; the styled <select> is this library's visible control, so
-    // the label is hidden via the `caption_label` classNames key.
-    caption_label: 'hidden',                           // UI.CaptionLabel = "caption_label"
-    // navLayout="around" positions the buttons absolutely within each month;
-    // `month` is `relative`, so the buttons pin to its left/right edge.
-    button_previous: mergeSlot('navButton', classNames, 'absolute left-0 top-0'), // UI.PreviousMonthButton = "button_previous"
-    button_next: mergeSlot('navButton', classNames, 'absolute right-0 top-0'),    // UI.NextMonthButton = "button_next"
-    weekday: mergeSlot('weekday', classNames),          // UI.Weekday = "weekday"
-    week: mergeSlot('week', classNames),               // UI.Week = "week"
-    day_button: mergeSlot('day', classNames),          // UI.DayButton = "day_button"
-    // SelectionState enum values
-    selected: mergeSlot('daySelected', classNames),    // SelectionState.selected = "selected"
-    range_start: mergeSlot('dayRangeStart', classNames), // SelectionState.range_start = "range_start"
-    range_end: mergeSlot('dayRangeEnd', classNames),   // SelectionState.range_end = "range_end"
-    range_middle: mergeSlot('dayRangeMiddle', classNames), // SelectionState.range_middle = "range_middle"
-    // DayFlag enum values
-    today: mergeSlot('dayToday', classNames),          // DayFlag.today = "today"
-    disabled: mergeSlot('dayDisabled', classNames),    // DayFlag.disabled = "disabled"
-    outside: mergeSlot('dayOutside', classNames),      // DayFlag.outside = "outside"
+    root: mergeSlot('calendar', classNames, 'rdp-root'),     // UI.Root
+    month: mergeSlot('month', classNames),                   // UI.Month
+    month_caption: mergeSlot('caption', classNames),         // UI.MonthCaption
+    dropdowns: mergeSlot('dropdowns', classNames),           // UI.Dropdowns
+    dropdown: mergeSlot('dropdown', classNames),             // UI.Dropdown
+    caption_label: 'drp-caption-label',                      // UI.CaptionLabel (hidden via styles.css)
+    button_previous: mergeSlot('navButton', classNames, 'drp-nav-button--prev'), // UI.PreviousMonthButton
+    button_next: mergeSlot('navButton', classNames, 'drp-nav-button--next'),     // UI.NextMonthButton
+    weekday: mergeSlot('weekday', classNames),               // UI.Weekday
+    week: mergeSlot('week', classNames),                     // UI.Week
+    day_button: mergeSlot('day', classNames),                // UI.DayButton
+    selected: mergeSlot('daySelected', classNames),          // SelectionState.selected
+    range_start: mergeSlot('dayRangeStart', classNames),     // SelectionState.range_start
+    range_end: mergeSlot('dayRangeEnd', classNames),         // SelectionState.range_end
+    range_middle: mergeSlot('dayRangeMiddle', classNames),   // SelectionState.range_middle
+    today: mergeSlot('dayToday', classNames),                // DayFlag.today
+    disabled: mergeSlot('dayDisabled', classNames),          // DayFlag.disabled
+    outside: mergeSlot('dayOutside', classNames),            // DayFlag.outside
   };
 }
 

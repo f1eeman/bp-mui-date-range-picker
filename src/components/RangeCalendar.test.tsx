@@ -195,14 +195,15 @@ describe('RangeCalendar', () => {
     );
     // rdp's dropdown caption hardcodes an aria-hidden <span> (label text +
     // chevron) next to each <select>. It must not carry rdp's visible
-    // `rdp-caption_label` class — it gets the `hidden` utility instead.
+    // `rdp-caption_label` class — it gets `drp-caption-label` instead, which
+    // styles.css hides via `display: none`.
     expect(container.querySelector('.rdp-caption_label')).toBeNull();
     const labels = container.querySelectorAll(
       '.rdp-dropdown_root > span[aria-hidden="true"]',
     );
     expect(labels.length).toBeGreaterThan(0);
     labels.forEach((el) => {
-      expect(el.className).toContain('hidden');
+      expect(el.className).toContain('drp-caption-label');
     });
     // the actual <select> dropdowns are still present
     expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(2);
