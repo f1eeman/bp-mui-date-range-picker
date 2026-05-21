@@ -19,6 +19,9 @@ export const defaultClassNames: Record<Slot, string> = {
   calendar: 'p-3',
   month: 'space-y-2',
   caption: 'text-sm font-medium text-zinc-900',
+  dropdowns: 'flex items-center gap-1',
+  dropdown:
+    'rounded border border-zinc-300 bg-white px-1 py-0.5 text-sm text-zinc-900',
   nav: 'flex items-center justify-between',
   navButton: 'inline-flex h-7 w-7 items-center justify-center rounded hover:bg-zinc-100',
   weekday: 'text-xs font-normal text-zinc-400',
