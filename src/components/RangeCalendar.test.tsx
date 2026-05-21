@@ -125,4 +125,20 @@ describe('RangeCalendar', () => {
     // only if onMonthChange round-tripped the change.
     expect(yearSelect.value).toBe(opt2028.value);
   });
+
+  it('does not render rdp caption labels (the styled selects are the only controls)', () => {
+    const { container } = render(
+      <RangeCalendar
+        value={[null, null]}
+        onChange={vi.fn()}
+        contiguous
+        defaultMonth={new Date(2026, 4, 1)}
+      />,
+    );
+    // rdp's dropdown caption renders a redundant `caption_label` span (label
+    // text + chevron) next to each <select>; it must be suppressed.
+    expect(container.querySelectorAll('.rdp-caption_label')).toHaveLength(0);
+    // the actual <select> dropdowns must still be present
+    expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(2);
+  });
 });
