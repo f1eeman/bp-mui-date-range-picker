@@ -105,4 +105,10 @@ describe('DateRangeInput', () => {
     expect(last[0].getDate()).toBe(10);
     expect(last[1].getDate()).toBe(20);
   });
+
+  it('shows month and year dropdowns once the calendar is open', async () => {
+    render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    expect((await screen.findAllByRole('combobox')).length).toBeGreaterThanOrEqual(2);
+  });
 });

@@ -47,6 +47,8 @@ function rdpClassNames(classNames?: ClassNames): Record<string, string> {
     root: mergeSlot('calendar', classNames, 'rdp-root'), // UI.Root = "root"
     month: mergeSlot('month', classNames),             // UI.Month = "month"
     month_caption: mergeSlot('caption', classNames),   // UI.MonthCaption = "month_caption"
+    dropdowns: mergeSlot('dropdowns', classNames),     // UI.Dropdowns = "dropdowns"
+    dropdown: mergeSlot('dropdown', classNames),       // UI.Dropdown = "dropdown"
     nav: mergeSlot('nav', classNames),                 // UI.Nav = "nav"
     button_previous: navBtn,                           // UI.PreviousMonthButton = "button_previous"
     button_next: navBtn,                               // UI.NextMonthButton = "button_next"
@@ -79,6 +81,22 @@ function buildDisabled(
   return matchers;
 }
 
+/**
+ * Year-range bounds for the caption dropdowns. Uses minDate/maxDate when given,
+ * otherwise the current year +/- 10. The returned months also bound month
+ * navigation, which is intentional (see the design doc).
+ */
+function yearBounds(
+  minDate?: Date,
+  maxDate?: Date,
+): { startMonth: Date; endMonth: Date } {
+  const currentYear = new Date().getFullYear();
+  return {
+    startMonth: minDate ?? new Date(currentYear - 10, 0, 1),
+    endMonth: maxDate ?? new Date(currentYear + 10, 11, 31),
+  };
+}
+
 /** A range calendar: one grid when contiguous, two independent grids otherwise. */
 export function RangeCalendar({
   value,
@@ -100,11 +118,16 @@ export function RangeCalendar({
   // Only the first argument (the range) is needed.
   const handleSelect = (range: RdpRange | undefined) => onChange(fromRdpRange(range));
 
+  const { startMonth, endMonth } = yearBounds(minDate, maxDate);
+
   const shared = {
     mode: 'range' as const,
     selected: toRdpRange(value),
     onSelect: handleSelect,
     disabled: buildDisabled(minDate, maxDate, disabledDays),
+    captionLayout: 'dropdown' as const,
+    startMonth,
+    endMonth,
     locale,
     classNames: rdpClassNames(classNames),
   };
