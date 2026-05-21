@@ -1,4 +1,4 @@
-import { cloneElement, type ReactElement, type ReactNode } from 'react';
+import { cloneElement, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import {
   useFloating, autoUpdate, offset, flip, shift,
   useClick, useDismiss, useRole, useInteractions,
@@ -11,6 +11,10 @@ export interface PopoverProps {
   trigger: ReactElement<Record<string, unknown>>;
   children: ReactNode;
   className?: string;
+  /** Extra inline style for the floating panel. Merged *under* `floatingStyles`
+   *  so positioning always wins. Used to forward `--drp-*` theme tokens onto
+   *  the portalled panel, which cannot inherit them from `.drp-root`. */
+  style?: CSSProperties;
   /**
    * When true, the click-to-toggle interaction is disabled on the trigger.
    * Use this when the parent manages `open` via focus events instead of clicks,
@@ -21,7 +25,7 @@ export interface PopoverProps {
 }
 
 /** Anchored, dismissible popover built on floating-ui. */
-export function Popover({ open, onOpenChange, trigger, children, className, disableClickToggle }: PopoverProps) {
+export function Popover({ open, onOpenChange, trigger, children, className, style, disableClickToggle }: PopoverProps) {
   const { refs, floatingStyles, context } = useFloating({
     open,
     onOpenChange,
@@ -51,7 +55,7 @@ export function Popover({ open, onOpenChange, trigger, children, className, disa
           <FloatingFocusManager context={context} modal={false} disabled>
             <div
               ref={refs.setFloating}
-              style={floatingStyles}
+              style={{ ...style, ...floatingStyles }}
               className={className}
               {...getFloatingProps()}
             >
