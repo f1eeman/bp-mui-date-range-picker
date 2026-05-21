@@ -19,7 +19,7 @@ export type Slot =
   | 'inputInvalid' | 'separator'
   | 'popover' | 'panel'
   | 'shortcutsPanel' | 'shortcut' | 'shortcutActive'
-  | 'calendar' | 'month' | 'caption' | 'dropdowns' | 'dropdown' | 'nav' | 'navButton'
+  | 'calendar' | 'month' | 'caption' | 'dropdowns' | 'dropdown' | 'navButton'
   | 'weekday' | 'week' | 'day'
   | 'daySelected' | 'dayRangeStart' | 'dayRangeEnd' | 'dayRangeMiddle'
   | 'dayToday' | 'dayDisabled' | 'dayOutside'

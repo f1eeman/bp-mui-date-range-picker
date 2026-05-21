@@ -126,6 +126,64 @@ describe('RangeCalendar', () => {
     expect(yearSelect.value).toBe(opt2028.value);
   });
 
+  it('renders no standalone <nav> element (navLayout around)', () => {
+    const { container } = render(
+      <RangeCalendar
+        value={[null, null]}
+        onChange={vi.fn()}
+        contiguous
+        defaultMonth={new Date(2026, 4, 1)}
+      />,
+    );
+    expect(container.querySelector('nav')).toBeNull();
+  });
+
+  it('places the prev arrow before the first caption and the next arrow after the last', () => {
+    const { container } = render(
+      <RangeCalendar
+        value={[null, null]}
+        onChange={vi.fn()}
+        contiguous
+        defaultMonth={new Date(2026, 4, 1)}
+      />,
+    );
+    // nav buttons are the <button>s that are NOT day cells; day cells live
+    // inside the month grid ([role="grid"]).
+    const navButtons = Array.from(container.querySelectorAll('button')).filter(
+      (b) => !b.closest('[role="grid"]'),
+    );
+    expect(navButtons).toHaveLength(2); // contiguous: exactly one prev + one next
+    const [prevBtn, nextBtn] = navButtons;
+    const selects = container.querySelectorAll('select');
+    const firstSelect = selects[0];
+    const lastSelect = selects[selects.length - 1];
+    // the prev arrow comes before the first month's dropdowns
+    expect(
+      prevBtn.compareDocumentPosition(firstSelect) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // the next arrow comes after the last month's dropdowns
+    expect(
+      nextBtn.compareDocumentPosition(lastSelect) &
+        Node.DOCUMENT_POSITION_PRECEDING,
+    ).toBeTruthy();
+  });
+
+  it('gives each calendar its own pair of arrows in non-contiguous mode', () => {
+    const { container } = render(
+      <RangeCalendar
+        value={[null, null]}
+        onChange={vi.fn()}
+        contiguous={false}
+        defaultMonth={new Date(2026, 4, 1)}
+      />,
+    );
+    const navButtons = Array.from(container.querySelectorAll('button')).filter(
+      (b) => !b.closest('[role="grid"]'),
+    );
+    expect(navButtons).toHaveLength(4); // two calendars x (prev + next)
+  });
+
   it('suppresses the redundant rdp caption label (the styled selects are the only controls)', () => {
     const { container } = render(
       <RangeCalendar
