@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup';
+import { copyFile } from 'node:fs/promises';
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -8,4 +9,7 @@ export default defineConfig({
   clean: true,
   treeshake: true,
   external: ['react', 'react-dom'],
+  async onSuccess() {
+    await copyFile('src/styles.css', 'dist/styles.css');
+  },
 });

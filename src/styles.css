@@ -1,0 +1,240 @@
+/* bp-mui-date-range-picker — themeable styles.
+   Import once in your app:  import 'bp-mui-date-range-picker/styles.css';
+   Retheme by overriding any --drp-* token (globally, on a wrapper, or per
+   instance via style={{ '--drp-accent': '...' }}).
+   Every rule is wrapped in :where() (zero specificity) so any class passed
+   through the `classNames` prop overrides it. */
+
+.drp-root {
+  /* colors */
+  --drp-accent: #4f46e5;
+  --drp-accent-fg: #ffffff;
+  --drp-bg: #ffffff;
+  --drp-fg: #18181b;
+  --drp-muted-fg: #a1a1aa;
+  --drp-border: #d4d4d8;
+  --drp-hover-bg: #f4f4f5;
+  --drp-range-bg: #e0e7ff;
+  --drp-range-fg: #312e81;
+  --drp-today-fg: #4f46e5;
+  --drp-disabled-fg: #d4d4d8;
+  --drp-shortcut-active-bg: #eef2ff;
+  --drp-shortcut-active-fg: #4338ca;
+  --drp-invalid-border: #ef4444;
+  --drp-invalid-ring: #fecaca;
+  --drp-focus-ring: #c7d2fe;
+  /* shape & size */
+  --drp-radius: 0.375rem;
+  --drp-day-size: 2.25rem;
+  --drp-input-height: 2.25rem;
+  --drp-nav-button-size: 1.75rem;
+  --drp-popover-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --drp-panel-padding: 0.75rem;
+  --drp-shortcuts-width: 10rem;
+  --drp-gap: 0.5rem;
+  /* typography */
+  --drp-font-family: inherit;
+  --drp-font-size: 0.875rem;
+  --drp-font-size-sm: 0.75rem;
+  --drp-font-weight-medium: 500;
+}
+
+:where(.drp-root) {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  font-family: var(--drp-font-family);
+}
+
+:where(.drp-input-group) {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--drp-gap);
+}
+
+:where(.drp-input) {
+  height: var(--drp-input-height);
+  box-sizing: border-box;
+  border: 1px solid var(--drp-border);
+  border-radius: var(--drp-radius);
+  background: var(--drp-bg);
+  padding: 0 0.75rem;
+  font-size: var(--drp-font-size);
+  color: var(--drp-fg);
+  outline: none;
+}
+:where(.drp-input:focus) {
+  border-color: var(--drp-accent);
+  box-shadow: 0 0 0 2px var(--drp-focus-ring);
+}
+:where(.drp-input-invalid) {
+  border-color: var(--drp-invalid-border);
+}
+:where(.drp-input-invalid:focus) {
+  border-color: var(--drp-invalid-border);
+  box-shadow: 0 0 0 2px var(--drp-invalid-ring);
+}
+
+:where(.drp-separator) {
+  color: var(--drp-muted-fg);
+}
+
+:where(.drp-popover) {
+  z-index: 50;
+  border: 1px solid var(--drp-border);
+  border-radius: var(--drp-radius);
+  background: var(--drp-bg);
+  box-shadow: var(--drp-popover-shadow);
+}
+
+:where(.drp-panel) {
+  display: flex;
+}
+
+:where(.drp-shortcuts-panel) {
+  display: flex;
+  width: var(--drp-shortcuts-width);
+  flex-direction: column;
+  gap: 0.25rem;
+  border-right: 1px solid var(--drp-border);
+  padding: 0.5rem;
+}
+:where(.drp-shortcut) {
+  border: none;
+  background: none;
+  border-radius: var(--drp-radius);
+  padding: 0.25rem 0.5rem;
+  text-align: left;
+  font-size: var(--drp-font-size);
+  color: var(--drp-fg);
+  cursor: pointer;
+}
+:where(.drp-shortcut:hover) {
+  background: var(--drp-hover-bg);
+}
+:where(.drp-shortcut-active) {
+  background: var(--drp-shortcut-active-bg);
+  color: var(--drp-shortcut-active-fg);
+  font-weight: var(--drp-font-weight-medium);
+}
+
+:where(.drp-calendar) {
+  padding: var(--drp-panel-padding);
+}
+:where(.drp-month) {
+  position: relative;
+}
+:where(.drp-month) > * + * {
+  margin-top: 0.5rem;
+}
+:where(.drp-caption) {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--drp-nav-button-size);
+  font-size: var(--drp-font-size);
+  font-weight: var(--drp-font-weight-medium);
+  color: var(--drp-fg);
+}
+/* rdp renders a redundant label span next to the dropdowns — hidden */
+:where(.drp-caption-label) {
+  display: none;
+}
+:where(.drp-dropdowns) {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+:where(.drp-dropdown) {
+  border: 1px solid var(--drp-border);
+  border-radius: var(--drp-radius);
+  background: var(--drp-bg);
+  padding: 0.125rem 0.25rem;
+  font-size: var(--drp-font-size);
+  color: var(--drp-fg);
+}
+
+:where(.drp-nav-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--drp-nav-button-size);
+  height: var(--drp-nav-button-size);
+  border: none;
+  background: none;
+  border-radius: var(--drp-radius);
+  color: var(--drp-fg);
+  cursor: pointer;
+}
+:where(.drp-nav-button:hover) {
+  background: var(--drp-hover-bg);
+}
+:where(.drp-nav-button--prev) {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+:where(.drp-nav-button--next) {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+:where(.drp-weekday) {
+  font-size: var(--drp-font-size-sm);
+  font-weight: 400;
+  color: var(--drp-muted-fg);
+}
+
+:where(.drp-day) {
+  width: var(--drp-day-size);
+  height: var(--drp-day-size);
+  border: none;
+  background: none;
+  border-radius: var(--drp-radius);
+  font-size: var(--drp-font-size);
+  color: var(--drp-fg);
+  cursor: pointer;
+}
+:where(.drp-day:hover) {
+  background: var(--drp-hover-bg);
+}
+:where(.drp-day-selected),
+:where(.drp-day-range-start),
+:where(.drp-day-range-end) {
+  background: var(--drp-accent);
+  color: var(--drp-accent-fg);
+}
+:where(.drp-day-range-middle) {
+  background: var(--drp-range-bg);
+  color: var(--drp-range-fg);
+}
+:where(.drp-day-today) {
+  font-weight: 600;
+  color: var(--drp-today-fg);
+}
+:where(.drp-day-disabled) {
+  color: var(--drp-disabled-fg);
+  text-decoration: line-through;
+  cursor: default;
+}
+:where(.drp-day-outside) {
+  color: var(--drp-muted-fg);
+}
+
+:where(.drp-time-picker) {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-top: 1px solid var(--drp-border);
+  padding: 0.5rem;
+}
+:where(.drp-time-picker-input) {
+  width: 3rem;
+  height: 2rem;
+  border: 1px solid var(--drp-border);
+  border-radius: var(--drp-radius);
+  text-align: center;
+  font-size: var(--drp-font-size);
+  color: var(--drp-fg);
+  background: var(--drp-bg);
+}
