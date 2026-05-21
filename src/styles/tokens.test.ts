@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { DRP_TOKENS, readThemeTokens } from './tokens';
 
 describe('DRP_TOKENS', () => {
@@ -29,5 +29,24 @@ describe('readThemeTokens', () => {
       expect(tokens['--drp-accent']).toBeUndefined();
     }
     el.remove();
+  });
+
+  it('collects non-empty token values and skips empty ones', () => {
+    const stub: Record<string, string> = {
+      '--drp-accent': 'rgb(1, 2, 3)',
+      '--drp-bg': '#ffffff',
+    };
+    const spy = vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+      getPropertyValue: (name: string) => stub[name] ?? '',
+    } as unknown as CSSStyleDeclaration);
+
+    const tokens = readThemeTokens(document.createElement('div')) as Record<string, string>;
+
+    expect(tokens['--drp-accent']).toBe('rgb(1, 2, 3)');
+    expect(tokens['--drp-bg']).toBe('#ffffff');
+    // a token getComputedStyle reports as empty must be skipped entirely
+    expect('--drp-fg' in tokens).toBe(false);
+
+    spy.mockRestore();
   });
 });
