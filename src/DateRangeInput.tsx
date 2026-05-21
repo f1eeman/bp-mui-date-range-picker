@@ -26,7 +26,7 @@ export function DateRangeInput(props: DateRangeInputProps) {
     minDate, maxDate, disabledDays, allowSingleDayRange,
     contiguousCalendarMonths = true,
     shortcuts, timePrecision,
-    closeOnSelection = true,
+    closeOnSelection = false,
     disabled, placeholder, classNames,
   } = props;
 

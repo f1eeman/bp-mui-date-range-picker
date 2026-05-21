@@ -94,7 +94,13 @@ describe('DateRangeInput', () => {
 
   it('closes the popover when a two-day range is completed', async () => {
     const onChange = vi.fn();
-    render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} onChange={onChange} />);
+    render(
+      <DateRangeInput
+        placeholder={{ start: 'from', end: 'to' }}
+        onChange={onChange}
+        closeOnSelection
+      />,
+    );
     await userEvent.click(screen.getByPlaceholderText('from'));
     await userEvent.click(screen.getAllByText('10')[0]);
     await userEvent.click(screen.getAllByText('20')[0]);
@@ -104,6 +110,16 @@ describe('DateRangeInput', () => {
     expect(last[1]).not.toBeNull();
     expect(last[0].getDate()).toBe(10);
     expect(last[1].getDate()).toBe(20);
+  });
+
+  it('keeps the popover open after a complete range by default', async () => {
+    const onChange = vi.fn();
+    render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('10')[0]);
+    await userEvent.click(screen.getAllByText('20')[0]);
+    // closeOnSelection defaults to false — the popover stays open
+    expect(screen.queryAllByRole('grid').length).toBeGreaterThan(0);
   });
 
   it('shows month and year dropdowns once the calendar is open', async () => {
