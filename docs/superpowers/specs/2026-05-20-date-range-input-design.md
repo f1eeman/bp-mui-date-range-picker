@@ -127,7 +127,7 @@ interface DateRangeInputProps {
   contiguousCalendarMonths?: boolean;         // default true
   shortcuts?: boolean | Shortcut[];           // true = дефолтный набор
   timePrecision?: 'minute' | 'second';        // задан -> показывать TimePicker
-  closeOnSelection?: boolean;                 // default true
+  closeOnSelection?: boolean;                 // default false
 
   // — Поведение / состояние —
   disabled?: boolean;

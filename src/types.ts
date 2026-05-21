@@ -52,6 +52,11 @@ export interface DateRangeInputProps {
   contiguousCalendarMonths?: boolean;
   shortcuts?: boolean | Shortcut[];
   timePrecision?: 'minute' | 'second';
+  /**
+   * When true, the popover closes once a complete range (two different days)
+   * is selected via the calendar or a shortcut. Defaults to false — the
+   * popover stays open until dismissed (Escape or click outside).
+   */
   closeOnSelection?: boolean;
 
   disabled?: boolean;
