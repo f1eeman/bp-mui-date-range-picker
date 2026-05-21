@@ -1048,7 +1048,9 @@ describe('RangeCalendar', () => {
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
-    await userEvent.click(screen.getByText('15'));
+    // A contiguous 2-month calendar renders "15" in both months; the first
+    // occurrence in DOM order is the left (May) month.
+    await userEvent.click(screen.getAllByText('15')[0]);
     expect(onChange).toHaveBeenCalled();
     const arg = onChange.mock.calls[0][0];
     expect(Array.isArray(arg)).toBe(true);
