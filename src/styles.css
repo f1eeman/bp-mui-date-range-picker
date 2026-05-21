@@ -125,6 +125,7 @@
 
 :where(.drp-calendar) {
   padding: var(--drp-panel-padding);
+  color: var(--drp-fg);
 }
 :where(.drp-month) {
   position: relative;
@@ -197,7 +198,7 @@
   background: none;
   border-radius: var(--drp-radius);
   font-size: var(--drp-font-size);
-  color: var(--drp-fg);
+  color: inherit;
   cursor: pointer;
 }
 :where(.drp-day:hover) {
@@ -219,6 +220,8 @@
 }
 :where(.drp-day-disabled) {
   color: var(--drp-disabled-fg);
+}
+:where(.drp-day-disabled) :where(.drp-day) {
   text-decoration: line-through;
   cursor: default;
 }
