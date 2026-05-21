@@ -221,7 +221,7 @@
 :where(.drp-day-disabled) {
   color: var(--drp-disabled-fg);
 }
-:where(.drp-day-disabled) :where(.drp-day) {
+:where(.drp-day-disabled .drp-day) {
   text-decoration: line-through;
   cursor: default;
 }
