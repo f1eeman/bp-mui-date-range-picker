@@ -126,7 +126,7 @@ describe('RangeCalendar', () => {
     expect(yearSelect.value).toBe(opt2028.value);
   });
 
-  it('does not render rdp caption labels (the styled selects are the only controls)', () => {
+  it('suppresses the redundant rdp caption label (the styled selects are the only controls)', () => {
     const { container } = render(
       <RangeCalendar
         value={[null, null]}
@@ -135,10 +135,18 @@ describe('RangeCalendar', () => {
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
-    // rdp's dropdown caption renders a redundant `caption_label` span (label
-    // text + chevron) next to each <select>; it must be suppressed.
-    expect(container.querySelectorAll('.rdp-caption_label')).toHaveLength(0);
-    // the actual <select> dropdowns must still be present
+    // rdp's dropdown caption hardcodes an aria-hidden <span> (label text +
+    // chevron) next to each <select>. It must not carry rdp's visible
+    // `rdp-caption_label` class — it gets the `hidden` utility instead.
+    expect(container.querySelector('.rdp-caption_label')).toBeNull();
+    const labels = container.querySelectorAll(
+      '.rdp-dropdown_root > span[aria-hidden="true"]',
+    );
+    expect(labels.length).toBeGreaterThan(0);
+    labels.forEach((el) => {
+      expect(el.className).toContain('hidden');
+    });
+    // the actual <select> dropdowns are still present
     expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(2);
   });
 });
