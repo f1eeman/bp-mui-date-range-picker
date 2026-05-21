@@ -80,10 +80,12 @@ src/
   `DateInputField`, `Popover` с календарём. Date-логики не содержит.
 - **`useDateRangeInput`** — единственный держатель состояния диапазона:
   значение `[start, end]`. Прогоняет каждое изменение через `swapIfNeeded`
-  (порядок start <= end) и отклоняет single-day-диапазон, если не задан
-  `allowSingleDayRange`. Поддерживает controlled и uncontrolled режимы.
+  (порядок start <= end). Поддерживает controlled и uncontrolled режимы.
   Тестируется изолированно. (Выбор границы при клике в календаре делегирован
-  `react-day-picker` — отдельное состояние `focusedBoundary` не понадобилось.)
+  `react-day-picker` — отдельное состояние `focusedBoundary` не понадобилось.
+  Single-day-диапазон — допустимое значение; `react-day-picker` v9 на первый
+  клик отдаёт именно `{from:A, to:A}`, поэтому ядро не отклоняет такие
+  диапазоны — иначе выбор диапазона кликами невозможен.)
 - **`useDateParsing`** — чистая логика: строка -> `Date | null` и обратно,
   через `formatDate`/`parseDate` из props или дефолты на `date-fns`.
 - **`RangeCalendar`** — обёртка `DayPicker` (`mode="range"`); маппит слоты
@@ -229,7 +231,7 @@ type Slot =
 | Дата вне `minDate`/`maxDate` | отклоняется, `inputInvalid` |
 | Дата в `disabledDays` | в календаре не кликабельна; при вводе текстом отклоняется |
 | `start > end` | границы меняются местами (swap) перед коммитом |
-| Диапазон в один день | разрешён только при `allowSingleDayRange={true}` |
+| Диапазон в один день | допустим всегда; `allowSingleDayRange` лишь решает, считать ли его завершённым выбором для авто-закрытия поповера |
 | Пустое поле | граница = `null`; `[null, null]` валиден (сброс) |
 
 Все правила — в `utils/dateRange.ts` (чистые функции `validate`, `clamp`,

@@ -41,6 +41,12 @@ export interface DateRangeInputProps {
   minDate?: Date;
   maxDate?: Date;
   disabledDays?: Matcher | Matcher[];
+  /**
+   * When true, a single-day selection (start === end) counts as a complete
+   * range and auto-closes the popover. When false (default), the popover stays
+   * open until a two-day range is picked. Single-day ranges are always valid
+   * values regardless of this flag.
+   */
   allowSingleDayRange?: boolean;
 
   contiguousCalendarMonths?: boolean;
