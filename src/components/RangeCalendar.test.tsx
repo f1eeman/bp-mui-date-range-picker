@@ -184,6 +184,18 @@ describe('RangeCalendar', () => {
     expect(navButtons).toHaveLength(4); // two calendars x (prev + next)
   });
 
+  it('wraps the two non-contiguous calendars in a drp-panels element', () => {
+    const { container } = render(
+      <RangeCalendar
+        value={[null, null]}
+        onChange={vi.fn()}
+        contiguous={false}
+        defaultMonth={new Date(2026, 4, 1)}
+      />,
+    );
+    expect(container.querySelector('.drp-panels')).not.toBeNull();
+  });
+
   it('suppresses the redundant rdp caption label (the styled selects are the only controls)', () => {
     const { container } = render(
       <RangeCalendar

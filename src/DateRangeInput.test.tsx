@@ -128,6 +128,14 @@ describe('DateRangeInput', () => {
     expect((await screen.findAllByRole('combobox')).length).toBeGreaterThanOrEqual(2);
   });
 
+  it('wraps the time pickers in a drp-time-pickers element', async () => {
+    render(
+      <DateRangeInput placeholder={{ start: 'from', end: 'to' }} timePrecision="minute" />,
+    );
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    expect(document.querySelector('.drp-time-pickers')).not.toBeNull();
+  });
+
   it('applies the drp-* base classes to its parts', () => {
     const { container } = render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} />);
     expect(container.querySelector('.drp-root')).not.toBeNull();

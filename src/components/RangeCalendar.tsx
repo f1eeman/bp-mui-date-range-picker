@@ -139,7 +139,7 @@ export function RangeCalendar({
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="drp-panels">
       <DayPicker {...shared} month={leftMonth} onMonthChange={setLeftMonth} />
       <DayPicker {...shared} month={rightMonth} onMonthChange={setRightMonth} />
     </div>
