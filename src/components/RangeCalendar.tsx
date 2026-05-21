@@ -38,7 +38,6 @@ function fromRdpRange(range: RdpRange | undefined): DateRange {
  * The default class for each key is `rdp-${key}` — e.g. root → rdp-root.
  */
 function rdpClassNames(classNames?: ClassNames): Record<string, string> {
-  const navBtn = mergeSlot('navButton', classNames);
   return {
     // UI elements (UI enum values)
     // Deliberately append 'rdp-root' so the stable selector works even when
@@ -53,9 +52,10 @@ function rdpClassNames(classNames?: ClassNames): Record<string, string> {
     // each <select>; the styled <select> is this library's visible control, so
     // the label is hidden via the `caption_label` classNames key.
     caption_label: 'hidden',                           // UI.CaptionLabel = "caption_label"
-    nav: mergeSlot('nav', classNames),                 // UI.Nav = "nav"
-    button_previous: navBtn,                           // UI.PreviousMonthButton = "button_previous"
-    button_next: navBtn,                               // UI.NextMonthButton = "button_next"
+    // navLayout="around" positions the buttons absolutely within each month;
+    // `month` is `relative`, so the buttons pin to its left/right edge.
+    button_previous: mergeSlot('navButton', classNames, 'absolute left-0 top-0'), // UI.PreviousMonthButton = "button_previous"
+    button_next: mergeSlot('navButton', classNames, 'absolute right-0 top-0'),    // UI.NextMonthButton = "button_next"
     weekday: mergeSlot('weekday', classNames),          // UI.Weekday = "weekday"
     week: mergeSlot('week', classNames),               // UI.Week = "week"
     day_button: mergeSlot('day', classNames),          // UI.DayButton = "day_button"
@@ -130,6 +130,7 @@ export function RangeCalendar({
     onSelect: handleSelect,
     disabled: buildDisabled(minDate, maxDate, disabledDays),
     captionLayout: 'dropdown' as const,
+    navLayout: 'around' as const,
     startMonth,
     endMonth,
     locale,
