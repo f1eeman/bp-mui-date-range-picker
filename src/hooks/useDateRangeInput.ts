@@ -1,13 +1,11 @@
 import { useCallback, useState } from 'react';
 import type { Boundary, DateRange } from '../types';
-import { isSingleDay, swapIfNeeded } from '../utils/dateRange';
+import { swapIfNeeded } from '../utils/dateRange';
 
 export interface UseDateRangeInputOptions {
   value?: DateRange;
   defaultValue?: DateRange;
   onChange?: (range: DateRange) => void;
-  /** When false (default), a both-ends-set single-day range is not committed. */
-  allowSingleDayRange?: boolean;
 }
 
 export interface DateRangeInputState {
@@ -22,7 +20,7 @@ export interface DateRangeInputState {
  * ordered start <= end.
  */
 export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInputState {
-  const { value, defaultValue, onChange, allowSingleDayRange } = opts;
+  const { value, defaultValue, onChange } = opts;
   const isControlled = value !== undefined;
 
   const [internal, setInternal] = useState<DateRange>(defaultValue ?? [null, null]);
@@ -32,12 +30,10 @@ export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInpu
   const commit = useCallback(
     (next: DateRange) => {
       const ordered = swapIfNeeded(next);
-      // Reject a both-ends-set single-day range unless explicitly allowed.
-      if (!allowSingleDayRange && isSingleDay(ordered)) return;
       if (!isControlled) setInternal(ordered);
       onChange?.(ordered);
     },
-    [isControlled, onChange, allowSingleDayRange],
+    [isControlled, onChange],
   );
 
   const setRange = useCallback((next: DateRange) => commit(next), [commit]);

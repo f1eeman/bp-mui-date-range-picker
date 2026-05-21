@@ -45,5 +45,7 @@ describe('RangeCalendar', () => {
     const arg = onChange.mock.calls[0][0];
     expect(Array.isArray(arg)).toBe(true);
     expect(arg[0]).toEqual(new Date(2026, 4, 15));
+    // rdp v9 represents a freshly-started range as { from: A, to: A }
+    expect(arg[1]).toEqual(arg[0]);
   });
 });

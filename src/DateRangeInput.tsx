@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { DateRange, DateRangeInputProps, Shortcut } from './types';
 import { useDateRangeInput } from './hooks/useDateRangeInput';
 import { useDateParsing } from './hooks/useDateParsing';
-import { isWithinBounds } from './utils/dateRange';
+import { isWithinBounds, isSingleDay } from './utils/dateRange';
 import { createDefaultShortcuts } from './utils/shortcuts';
 import { mergeSlot } from './utils/mergeClassNames';
 import { dateMatchModifiers } from 'react-day-picker';
@@ -31,7 +31,7 @@ export function DateRangeInput(props: DateRangeInputProps) {
   } = props;
 
   const [open, setOpen] = useState(false);
-  const state = useDateRangeInput({ value, defaultValue, onChange, allowSingleDayRange });
+  const state = useDateRangeInput({ value, defaultValue, onChange });
   const parsing = useDateParsing({ formatDate, parseDate, locale });
   const presets = useMemo(() => resolveShortcuts(shortcuts), [shortcuts]);
 
@@ -46,7 +46,12 @@ export function DateRangeInput(props: DateRangeInputProps) {
 
   const handleCalendarChange = (range: DateRange) => {
     state.setRange(range);
-    if (closeOnSelection && range[0] && range[1]) setOpen(false);
+    // rdp v9 starts a range as { from: A, to: A }; the popover closes only
+    // once a genuine selection is complete — a two-day range, or a single-day
+    // range when allowSingleDayRange treats that as complete.
+    const bothSet = range[0] != null && range[1] != null;
+    const complete = bothSet && (allowSingleDayRange || !isSingleDay(range));
+    if (closeOnSelection && complete) setOpen(false);
   };
 
   const inputGroup = (
