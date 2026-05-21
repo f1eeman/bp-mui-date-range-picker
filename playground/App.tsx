@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { DateRangeInput, type DateRange } from 'bp-mui-date-range-picker';
 
 export function App() {
@@ -39,6 +39,11 @@ export function App() {
           dayRangeMiddle: 'bg-emerald-100',
         }}
       />
+
+      <h2 className="text-lg font-medium">Theme via CSS variables</h2>
+      <div style={{ '--drp-accent': '#db2777', '--drp-radius': '12px' } as CSSProperties}>
+        <DateRangeInput placeholder={{ start: 'From', end: 'To' }} />
+      </div>
     </div>
   );
 }
