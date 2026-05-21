@@ -20,4 +20,13 @@ describe('styles.css', () => {
     expect(css).toContain('var(--drp-accent');
     expect(css).toContain('var(--drp-border');
   });
+
+  it('opens the day-state color cascade into the day button', () => {
+    // .drp-day must use color:inherit so a state color set on the parent <td>
+    // (default or consumer override) reaches the button text.
+    expect(css).toMatch(/:where\(\.drp-day\)\s*\{[^}]*color:\s*inherit/);
+    // disabled needs a button-targeted rule — text-decoration/cursor do not
+    // cross the <button> boundary.
+    expect(css).toContain(':where(.drp-day-disabled) :where(.drp-day)');
+  });
 });
