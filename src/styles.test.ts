@@ -1,0 +1,23 @@
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+
+describe('styles.css', () => {
+  const css = readFileSync('src/styles.css', 'utf8');
+
+  it('defines the theme tokens on .drp-root', () => {
+    expect(css).toContain('.drp-root');
+    expect(css).toContain('--drp-accent:');
+    expect(css).toContain('--drp-radius:');
+    expect(css).toContain('--drp-day-size:');
+  });
+
+  it('styles parts through zero-specificity :where() selectors', () => {
+    expect(css).toContain(':where(.drp-input)');
+    expect(css).toContain(':where(.drp-day-selected)');
+  });
+
+  it('drives styled values from --drp-* tokens', () => {
+    expect(css).toContain('var(--drp-accent');
+    expect(css).toContain('var(--drp-border');
+  });
+});
