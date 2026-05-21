@@ -112,7 +112,7 @@ export function DateRangeInput(props: DateRangeInputProps) {
               classNames={classNames}
             />
             {timePrecision && (
-              <div className="flex justify-between">
+              <div className="drp-time-pickers">
                 <TimePicker
                   value={state.range[0]}
                   precision={timePrecision}

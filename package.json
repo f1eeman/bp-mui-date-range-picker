@@ -1,7 +1,7 @@
 {
   "name": "bp-mui-date-range-picker",
   "version": "1.0.0",
-  "description": "Blueprint-style date range input for React with slot-based Tailwind styling",
+  "description": "Blueprint-style date range input for React with CSS-variable theming",
   "license": "MIT",
   "author": "f1eeman <mr.f1eeman@gmail.com>",
   "repository": "https://github.com/f1eeman/bp-mui-date-range-picker.git",

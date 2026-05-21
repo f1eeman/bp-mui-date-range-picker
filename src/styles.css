@@ -118,6 +118,11 @@
   font-weight: var(--drp-font-weight-medium);
 }
 
+:where(.drp-panels) {
+  display: flex;
+  gap: var(--drp-gap);
+}
+
 :where(.drp-calendar) {
   padding: var(--drp-panel-padding);
 }
@@ -219,6 +224,11 @@
 }
 :where(.drp-day-outside) {
   color: var(--drp-muted-fg);
+}
+
+:where(.drp-time-pickers) {
+  display: flex;
+  justify-content: space-between;
 }
 
 :where(.drp-time-picker) {
