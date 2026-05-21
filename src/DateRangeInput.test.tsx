@@ -77,4 +77,32 @@ describe('DateRangeInput', () => {
     await userEvent.click(screen.getByPlaceholderText('from'));
     expect(await screen.findByRole('button', { name: 'Last 7 days' })).toBeInTheDocument();
   });
+
+  it('keeps the popover open after the first day click', async () => {
+    const onChange = vi.fn();
+    render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    expect(screen.queryAllByRole('grid').length).toBeGreaterThan(0); // open
+    // first day click only STARTS the range — popover must stay open
+    await userEvent.click(screen.getAllByText('10')[0]);
+    expect(screen.queryAllByRole('grid').length).toBeGreaterThan(0); // still open
+    // and the in-progress single-day range is committed, not discarded
+    const lastCall = onChange.mock.calls.at(-1)![0];
+    expect(lastCall[0]).not.toBeNull();
+    expect(lastCall[1]).not.toBeNull();
+  });
+
+  it('closes the popover when a two-day range is completed', async () => {
+    const onChange = vi.fn();
+    render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('10')[0]);
+    await userEvent.click(screen.getAllByText('20')[0]);
+    expect(screen.queryAllByRole('grid').length).toBe(0); // closed
+    const last = onChange.mock.calls.at(-1)![0];
+    expect(last[0]).not.toBeNull();
+    expect(last[1]).not.toBeNull();
+    expect(last[0].getDate()).toBe(10);
+    expect(last[1].getDate()).toBe(20);
+  });
 });

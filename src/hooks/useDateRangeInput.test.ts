@@ -42,19 +42,9 @@ describe('useDateRangeInput', () => {
     expect(result.current.range).toEqual([d(10), d(20)]);
   });
 
-  it('rejects a both-ends-set single-day range by default', () => {
+  it('commits a single-day range (start equals end)', () => {
     const onChange = vi.fn();
     const { result } = renderHook(() => useDateRangeInput({ onChange }));
-    act(() => result.current.setRange([d(10), d(10)]));
-    expect(result.current.range).toEqual([null, null]); // commit rejected
-    expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('allows a single-day range when allowSingleDayRange is set', () => {
-    const onChange = vi.fn();
-    const { result } = renderHook(() =>
-      useDateRangeInput({ onChange, allowSingleDayRange: true }),
-    );
     act(() => result.current.setRange([d(10), d(10)]));
     expect(result.current.range).toEqual([d(10), d(10)]);
     expect(onChange).toHaveBeenCalledWith([d(10), d(10)]);
