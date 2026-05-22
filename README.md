@@ -8,7 +8,9 @@ Blueprint-style `DateRangeInput` for React 19 with CSS-variable theming and slot
 npm install bp-mui-date-range-picker
 ```
 
-Peer dependencies: `react` and `react-dom` 19+.
+Peer dependencies: `react` and `react-dom` 19+. Use the latest
+React 19 patch release (19.2.6 or newer) — earlier 19.x releases are
+affected by React Server Components security advisories.
 
 ## Styling
 
