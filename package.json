@@ -27,11 +27,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "dev": "vite --config playground/vite.config.ts"
+    "dev": "vite --config playground/vite.config.ts",
+    "prepublishOnly": "tsup"
   },
   "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.0",
