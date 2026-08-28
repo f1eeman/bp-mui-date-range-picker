@@ -33,6 +33,14 @@ describe('styles.css', () => {
     expect(css).not.toContain(':where(');
   });
 
+  it('centres itself when a parent row stretches it', () => {
+    // The component sits in filter rows beside taller controls. Its root is a
+    // flex column, so `align-items: stretch` on the row makes it as tall as the
+    // row and the fields pin to the top unless the main axis is centred. This
+    // used to be handled by a wrapper element in the host; the root owns it now.
+    expect(css).toMatch(/\.drp-root \{[^}]*justify-content:\s*center/);
+  });
+
   it('spaces a month with flex gap, not an adjacent-sibling margin', () => {
     // `navLayout="around"` renders the previous-month button before the caption
     // in the first month and the next-month button after it in the last. The

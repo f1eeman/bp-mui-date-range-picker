@@ -169,10 +169,17 @@
      size and line-height here they came from the host's body text, so the
      separator between the two fields ran at a different size from the fields
      themselves. */
+  /* `justify-content` is the vertical axis here, and it only does anything
+     when a parent stretches the root — a filter row with `align-items:
+     stretch` beside a taller control, which is where this component usually
+     lives. Without it the fields pin to the top of the row instead of lining
+     up with the buttons next to them. At the root's natural height it is a
+     no-op. */
   .drp-root {
     position: relative;
     display: inline-flex;
     flex-direction: column;
+    justify-content: center;
     font-family: var(--drp-font-family);
     font-size: var(--drp-font-size);
     line-height: var(--drp-line-height);
