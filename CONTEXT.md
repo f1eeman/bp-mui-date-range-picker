@@ -39,8 +39,14 @@ property set on an element always beats the same property inherited into it.
 A named node of the rendered tree that the host can attach classes to
 (`day`, `popover`, `inputGroup`, …). Slots are the escape hatch for anything
 the token vocabulary cannot express, and the only channel for structural
-change. A slot with no rule behind it is not a slot — it is a promise the
-package does not keep.
+change.
+
+What makes a slot real is that it reaches a node the component actually
+renders, under a class name that does not move. Whether the package also
+styles that node by default is a separate question — a slot the package
+leaves unstyled is still a working override point. A slot that names a node
+the component never renders is the broken case: it reads as an extension
+point and can never do anything.
 
 ## Package layer
 

@@ -131,15 +131,34 @@
     gap: var(--drp-gap);
   }
 
+  /* Everything from here to .drp-day-hidden is layout the package took over
+     from react-day-picker's stylesheet, which it no longer imports
+     (docs/adr/0003). It is structural, not decorative: without it the grid has
+     no size and the month columns collapse. */
   .drp-calendar {
+    position: relative;
+    box-sizing: border-box;
     padding: var(--drp-panel-padding);
     color: var(--drp-fg);
+  }
+  .drp-calendar * {
+    box-sizing: border-box;
+  }
+  .drp-months {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    max-width: fit-content;
   }
   .drp-month {
     position: relative;
   }
   .drp-month > * + * {
     margin-top: 0.5rem;
+  }
+  .drp-month-grid {
+    border-collapse: collapse;
   }
   .drp-caption {
     display: flex;
@@ -149,14 +168,22 @@
     font-weight: var(--drp-font-weight-medium);
     color: var(--drp-fg);
   }
-  /* rdp renders a redundant label span next to the dropdowns — hidden */
+  /* react-day-picker pairs each <select> with an aria-hidden label span and
+     hides the select behind it. This component leaves the select natively
+     visible instead, which makes the span redundant. */
   .drp-caption-label {
     display: none;
   }
   .drp-dropdowns {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.25rem;
+  }
+  .drp-dropdown-root {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
   }
   .drp-dropdown {
     border: 1px solid var(--drp-border);
@@ -167,20 +194,39 @@
     color: var(--drp-fg);
   }
 
+  /* navLayout="around" puts the two buttons directly inside the month and
+     leaves .drp-nav unrendered. The rule is kept so a different nav layout
+     still lands on something the package owns. */
+  .drp-nav {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+  }
   .drp-nav-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: var(--drp-nav-button-size);
     height: var(--drp-nav-button-size);
+    margin: 0;
+    padding: 0;
     border: none;
     background: none;
     border-radius: var(--drp-radius);
+    font: inherit;
     color: var(--drp-fg);
     cursor: pointer;
+    appearance: none;
   }
   .drp-nav-button:hover {
     background: var(--drp-hover-bg);
+  }
+  .drp-nav-button:disabled,
+  .drp-nav-button[aria-disabled='true'] {
+    opacity: 0.5;
+    cursor: revert;
   }
   .drp-nav-button--prev {
     position: absolute;
@@ -192,19 +238,45 @@
     right: 0;
     top: 0;
   }
+  /* react-day-picker's own sheet filled this with a hardcoded `blue`. Taking
+     the colour from the button means recolouring the nav is a token, not an
+     [&_svg]:fill-* override on the navButton slot. */
+  .drp-chevron {
+    display: inline-block;
+    fill: currentColor;
+  }
 
   .drp-weekday {
+    padding: 0.5rem 0;
     font-size: var(--drp-font-size-sm);
     font-weight: 400;
+    text-align: center;
     color: var(--drp-muted-fg);
   }
 
-  .drp-day {
+  /* The cell carries the size of the grid and the button fills it. Splitting
+     the two is the whole point of owning this file: while the cell came from
+     react-day-picker it was pinned at 44px and --drp-day-size only reached the
+     button inside, so the calendar could not be made compact by any means the
+     package documented. */
+  .drp-day-cell {
     width: var(--drp-day-size);
     height: var(--drp-day-size);
+    padding: 0;
+    text-align: center;
+  }
+  .drp-day {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--drp-day-size);
+    height: var(--drp-day-size);
+    margin: 0;
+    padding: 0;
     border: none;
     background: none;
     border-radius: var(--drp-radius);
+    font: inherit;
     font-size: var(--drp-font-size);
     color: inherit;
     cursor: pointer;
@@ -235,6 +307,16 @@
   }
   .drp-day-outside {
     color: var(--drp-muted-fg);
+  }
+  .drp-day-focused {
+    outline: 2px solid var(--drp-focus-ring);
+    outline-offset: -2px;
+  }
+  /* Showing more than one month leaves surplus cells for the adjacent month's
+     days. react-day-picker marks them and its sheet hid them; without a rule
+     here the same day numbers appear twice across the two grids. */
+  .drp-day-hidden {
+    visibility: hidden;
   }
 
   .drp-time-pickers {

@@ -13,16 +13,25 @@ export interface Shortcut {
   range: [Date, Date];
 }
 
-/** Every styleable element and state modifier of the component. */
+/**
+ * Every styleable element and state modifier of the component.
+ *
+ * `day` is the day *button*; `dayCell` is the table cell around it. The cell
+ * carries the size of the grid, which is why it has its own slot — see
+ * docs/adr/0003.
+ */
 export type Slot =
   | 'root' | 'inputGroup' | 'input' | 'inputStart' | 'inputEnd'
   | 'inputInvalid' | 'separator'
   | 'popover' | 'panel'
   | 'shortcutsPanel' | 'shortcut' | 'shortcutActive'
-  | 'calendar' | 'month' | 'caption' | 'dropdowns' | 'dropdown' | 'navButton'
-  | 'weekday' | 'week' | 'day'
+  | 'calendar' | 'months' | 'month' | 'caption'
+  | 'dropdowns' | 'dropdownRoot' | 'dropdown' | 'monthDropdown' | 'yearDropdown'
+  | 'nav' | 'navButton' | 'chevron'
+  | 'monthGrid' | 'weekdays' | 'weekday' | 'weeks' | 'week'
+  | 'dayCell' | 'day'
   | 'daySelected' | 'dayRangeStart' | 'dayRangeEnd' | 'dayRangeMiddle'
-  | 'dayToday' | 'dayDisabled' | 'dayOutside'
+  | 'dayToday' | 'dayDisabled' | 'dayOutside' | 'dayFocused'
   | 'timePicker' | 'timePickerInput';
 
 /** Slot -> Tailwind class string overrides. */

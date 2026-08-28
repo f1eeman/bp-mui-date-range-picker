@@ -13,7 +13,7 @@ describe('RangeCalendar', () => {
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
-    expect(container.querySelectorAll('.rdp-root')).toHaveLength(1);
+    expect(container.querySelectorAll('.drp-calendar')).toHaveLength(1);
   });
 
   it('renders two grids when non-contiguous', () => {
@@ -25,7 +25,7 @@ describe('RangeCalendar', () => {
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
-    expect(container.querySelectorAll('.rdp-root')).toHaveLength(2);
+    expect(container.querySelectorAll('.drp-calendar')).toHaveLength(2);
   });
 
   it('calls onChange with a tuple when a day is clicked', async () => {
@@ -211,7 +211,7 @@ describe('RangeCalendar', () => {
     // styles.css hides via `display: none`.
     expect(container.querySelector('.rdp-caption_label')).toBeNull();
     const labels = container.querySelectorAll(
-      '.rdp-dropdown_root > span[aria-hidden="true"]',
+      '.drp-dropdown-root > span[aria-hidden="true"]',
     );
     expect(labels.length).toBeGreaterThan(0);
     labels.forEach((el) => {

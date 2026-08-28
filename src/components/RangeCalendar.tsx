@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { DayPicker, type DateRange as RdpRange, type Matcher } from 'react-day-picker';
-import 'react-day-picker/style.css';
 import type { Locale } from 'date-fns';
 import { addMonths } from 'date-fns';
 import type { ClassNames, DateRange } from '../types';
-import { mergeSlot } from '../utils/mergeClassNames';
+import { rdpClassNames } from './rdpClassNames';
 
 export interface RangeCalendarProps {
   value: DateRange;
@@ -29,36 +28,6 @@ function toRdpRange(range: DateRange): RdpRange | undefined {
 function fromRdpRange(range: RdpRange | undefined): DateRange {
   if (!range?.from) return [null, null];
   return [range.from, range.to ?? null];
-}
-
-/**
- * Maps the library's slot classes onto react-day-picker v9's classNames keys.
- * The `rdp-root` extra is kept so a stable selector survives consumer overrides.
- * `caption_label` is mapped to `drp-caption-label`, which `styles.css` hides.
- * The nav buttons get side modifiers (`drp-nav-button--prev/--next`) that
- * `styles.css` positions for `navLayout="around"`.
- */
-function rdpClassNames(classNames?: ClassNames): Record<string, string> {
-  return {
-    root: mergeSlot('calendar', classNames, 'rdp-root'),     // UI.Root
-    month: mergeSlot('month', classNames),                   // UI.Month
-    month_caption: mergeSlot('caption', classNames),         // UI.MonthCaption
-    dropdowns: mergeSlot('dropdowns', classNames),           // UI.Dropdowns
-    dropdown: mergeSlot('dropdown', classNames),             // UI.Dropdown
-    caption_label: 'drp-caption-label',                      // UI.CaptionLabel (hidden via styles.css)
-    button_previous: mergeSlot('navButton', classNames, 'drp-nav-button--prev'), // UI.PreviousMonthButton
-    button_next: mergeSlot('navButton', classNames, 'drp-nav-button--next'),     // UI.NextMonthButton
-    weekday: mergeSlot('weekday', classNames),               // UI.Weekday
-    week: mergeSlot('week', classNames),                     // UI.Week
-    day_button: mergeSlot('day', classNames),                // UI.DayButton
-    selected: mergeSlot('daySelected', classNames),          // SelectionState.selected
-    range_start: mergeSlot('dayRangeStart', classNames),     // SelectionState.range_start
-    range_end: mergeSlot('dayRangeEnd', classNames),         // SelectionState.range_end
-    range_middle: mergeSlot('dayRangeMiddle', classNames),   // SelectionState.range_middle
-    today: mergeSlot('dayToday', classNames),                // DayFlag.today
-    disabled: mergeSlot('dayDisabled', classNames),          // DayFlag.disabled
-    outside: mergeSlot('dayOutside', classNames),            // DayFlag.outside
-  };
 }
 
 /** Builds the rdp `disabled` matcher list from bounds + custom matchers. */
