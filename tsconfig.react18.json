@@ -1,0 +1,21 @@
+{
+  // The peer range covers React 18 and 19, and React 19 moved the JSX
+  // namespace out of the global scope — the kind of break a widened range
+  // invites and that the default typecheck (which resolves @types/react 19)
+  // cannot see. This run points React's types at the aliased 18.x copies so
+  // both halves of the promise are actually checked.
+  //
+  // Scoped to what ships: the playground is a React 19 app, and the tests pull
+  // in jest-dom matcher types that say nothing about whether the package's own
+  // types survive React 18.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "bp-mui-date-range-picker": ["./src/index.ts"],
+      "react": ["./node_modules/types-react-18"],
+      "react/jsx-runtime": ["./node_modules/types-react-18/jsx-runtime"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
+}

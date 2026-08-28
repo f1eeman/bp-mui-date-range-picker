@@ -12,11 +12,13 @@ describe('mergeSlot', () => {
     expect(result).toContain('text-red-500');
   });
 
-  it('resolves Tailwind conflicts among the consumer classes (later wins)', () => {
-    const result = mergeSlot('input', { input: 'p-2' }, 'p-4');
-    expect(result).toContain('drp-input');
-    expect(result).toContain('p-4');
-    expect(result).not.toContain('p-2');
+  it('passes consumer classes through untouched, in order', () => {
+    // This used to run tailwind-merge and drop `p-2` in favour of `p-4`. The
+    // package has no business rewriting the host's classes: it does not know
+    // which Tailwind major the host is on, and its own defaults are `drp-*`
+    // classes that no Tailwind conflict resolver has anything to say about.
+    // What decides a real conflict is the cascade — see docs/adr/0002.
+    expect(mergeSlot('input', { input: 'p-2' }, 'p-4')).toBe('drp-input p-2 p-4');
   });
 
   it('ignores falsy extra classes', () => {
