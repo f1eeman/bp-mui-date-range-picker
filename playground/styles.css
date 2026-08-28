@@ -1,2 +1,12 @@
+/* The one line of integration the package asks of a layered host.
+
+   Without it `bp-drp` is registered by whichever stylesheet loads first and
+   ends up outside the host's declared order — appended last (beating every
+   utility) or, as here, first (losing even to Tailwind's preflight, whose
+   `input { border-radius: 0 }` is a tag selector). Naming it explicitly puts
+   it after `base`, so the package can undo UA and preflight resets, and
+   before `components`/`utilities`, so anything the host writes still wins. */
+@layer theme, base, bp-drp, components, utilities;
+
 @import "tailwindcss";
 @source "../src";
