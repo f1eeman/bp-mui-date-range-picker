@@ -45,6 +45,31 @@ describe('styles.css', () => {
     expect(css).toMatch(/\.drp-month \{[^}]*gap:/);
   });
 
+  it('defaults part tokens from seeds rather than repeating literals', () => {
+    // The two-level scheme only works if part tokens reference seeds: a host
+    // that sets --drp-radius must move the input, day and popover corners with
+    // one declaration.
+    expect(css).toMatch(/--drp-input-radius:\s*var\(--drp-radius\)/);
+    expect(css).toMatch(/--drp-day-radius:\s*var\(--drp-radius\)/);
+    expect(css).toMatch(/--drp-popover-radius:\s*var\(--drp-radius\)/);
+    expect(css).toMatch(/--drp-input-border-focus:\s*var\(--drp-accent\)/);
+    expect(css).toMatch(/--drp-day-selected-bg:\s*var\(--drp-accent\)/);
+  });
+
+  it('exposes the popover stacking order as a token', () => {
+    // Hardcoded at 50 before, which put the popover behind any Material UI
+    // dialog (1300) with no way for the host to say otherwise.
+    expect(css).toContain('--drp-popover-z-index:');
+    expect(css).toMatch(/z-index:\s*var\(--drp-popover-z-index\)/);
+  });
+
+  it('lets the host hand a colour scheme to the native controls', () => {
+    // The month/year dropdowns and the time fields are native elements the
+    // browser paints from `color-scheme`, not from these tokens.
+    expect(css).toContain('--drp-color-scheme: inherit');
+    expect(css).toMatch(/color-scheme:\s*var\(--drp-color-scheme\)/);
+  });
+
   it('drives styled values from --drp-* tokens', () => {
     expect(css).toContain('var(--drp-accent');
     expect(css).toContain('var(--drp-border');
@@ -59,7 +84,11 @@ describe('styles.css', () => {
     expect(css).toContain('.drp-day-disabled .drp-day');
     // disabled strike-through must land on the button element
     expect(css).toContain('text-decoration: line-through');
-    // .drp-calendar carries the default text color the button inherits
-    expect(css).toMatch(/\.drp-calendar \{[^}]*color:\s*var\(--drp-fg\)/);
+    // .drp-calendar carries the default text color the button inherits. It
+    // follows the popover surface it sits on rather than --drp-fg directly,
+    // so a host that darkens only the popover keeps readable days;
+    // --drp-popover-fg defaults to --drp-fg, so the default is unchanged.
+    expect(css).toMatch(/\.drp-calendar \{[^}]*color:\s*var\(--drp-popover-fg\)/);
+    expect(css).toMatch(/--drp-popover-fg:\s*var\(--drp-fg\)/);
   });
 });

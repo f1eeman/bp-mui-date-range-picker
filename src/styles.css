@@ -10,11 +10,18 @@
    Token defaults are declared on `:root`, never on the component's own
    element. A custom property set on an element beats the same property
    inherited into it, so a default declared on `.drp-root` could not be
-   overridden from anywhere outside it — see docs/adr/0001. */
+   overridden from anywhere outside it — see docs/adr/0001.
+
+   Tokens come in two levels. Seeds are the handful a host normally sets; part
+   tokens default to a seed through `var()` and exist so a host can disagree
+   with one detail without restating the rest. Substitution is lazy, so a part
+   token inherits as the unresolved literal `var(--drp-seed)` and resolves in
+   the scope of whichever element uses it — which is why a retheme scoped to a
+   subtree works exactly as well as one at `:root`. */
 
 @layer bp-drp {
   :root {
-    /* colors */
+    /* ---- seeds -------------------------------------------------------- */
     --drp-accent: #4f46e5;
     --drp-accent-fg: #ffffff;
     --drp-bg: #ffffff;
@@ -22,77 +29,212 @@
     --drp-muted-fg: #a1a1aa;
     --drp-border: #d4d4d8;
     --drp-hover-bg: #f4f4f5;
-    --drp-range-bg: #e0e7ff;
-    --drp-range-fg: #312e81;
-    --drp-today-fg: #4f46e5;
+    --drp-radius: 0.375rem;
+    --drp-gap: 0.5rem;
+    --drp-transition: 150ms ease;
+
+    /* Typography is three tokens rather than one `font` shorthand on purpose:
+       `font-family: inherit` is not a legal value inside the `font` shorthand,
+       so a `--drp-font` defaulting to `inherit` would drop the whole
+       declaration. A host mapping a Material UI typography variable splits it
+       into these three. */
+    --drp-font-family: inherit;
+    --drp-font-size: 0.875rem;
+    --drp-line-height: 1.5;
+    --drp-font-size-sm: 0.75rem;
+    --drp-font-weight-medium: 500;
+
+    /* Native <select> and <input> are painted by the browser, which reads
+       `color-scheme` and ignores these tokens. `inherit` keeps whatever the
+       host set on <html>; a dark host that sets none itself (Material UI
+       without CssBaseline) sets this to `dark` alongside its colours. */
+    --drp-color-scheme: inherit;
+
+    /* ---- shared state colours ----------------------------------------- */
     --drp-disabled-fg: #d4d4d8;
-    --drp-shortcut-active-bg: #eef2ff;
-    --drp-shortcut-active-fg: #4338ca;
     --drp-invalid-border: #ef4444;
     --drp-invalid-ring: #fecaca;
     --drp-focus-ring: #c7d2fe;
-    /* shape & size */
-    --drp-radius: 0.375rem;
-    --drp-day-size: 2.25rem;
+    --drp-focus-ring-width: 2px;
+
+    /* ---- input group --------------------------------------------------- */
+    /* Borderless by default: each field carries its own box. A host that wants
+       one shared outline around both (a Material UI outlined field) puts the
+       border here and zeroes --drp-input-border-width. */
+    --drp-input-group-gap: var(--drp-gap);
+    --drp-input-group-bg: transparent;
+    --drp-input-group-border-color: transparent;
+    --drp-input-group-border-width: 0;
+    --drp-input-group-border-hover: var(--drp-input-group-border-color);
+    --drp-input-group-border-focus: var(--drp-input-group-border-color);
+    --drp-input-group-radius: var(--drp-radius);
+    --drp-input-group-height: auto;
+    --drp-input-group-padding-x: 0;
+
+    /* ---- input ---------------------------------------------------------- */
+    --drp-input-bg: var(--drp-bg);
+    --drp-input-fg: var(--drp-fg);
+    --drp-input-placeholder-fg: var(--drp-muted-fg);
+    --drp-input-border-color: var(--drp-border);
+    --drp-input-border-hover: var(--drp-input-border-color);
+    --drp-input-border-focus: var(--drp-accent);
+    --drp-input-border-width: 1px;
+    --drp-input-radius: var(--drp-radius);
     --drp-input-height: 2.25rem;
-    --drp-nav-button-size: 1.75rem;
+    --drp-input-width: auto;
+    --drp-input-padding-x: 0.75rem;
+    --drp-input-text-align: start;
+    --drp-input-disabled-bg: var(--drp-input-bg);
+
+    /* ---- separator ------------------------------------------------------ */
+    --drp-separator-fg: var(--drp-muted-fg);
+
+    /* ---- popover -------------------------------------------------------- */
+    --drp-popover-bg: var(--drp-bg);
+    --drp-popover-fg: var(--drp-fg);
+    --drp-popover-border-color: var(--drp-border);
+    --drp-popover-radius: var(--drp-radius);
     --drp-popover-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    /* Was hardcoded at 50. Material UI puts modals at 1300, so a popover
+       opened inside a dialog went behind it with no way to say otherwise. */
+    --drp-popover-z-index: 50;
     --drp-panel-padding: 0.75rem;
+
+    /* ---- shortcuts ------------------------------------------------------ */
     --drp-shortcuts-width: 10rem;
-    --drp-gap: 0.5rem;
-    /* typography */
-    --drp-font-family: inherit;
-    --drp-font-size: 0.875rem;
-    --drp-font-size-sm: 0.75rem;
-    --drp-font-weight-medium: 500;
+    --drp-shortcut-fg: var(--drp-fg);
+    --drp-shortcut-hover-bg: var(--drp-hover-bg);
+    --drp-shortcut-radius: var(--drp-radius);
+    --drp-shortcut-active-bg: #eef2ff;
+    --drp-shortcut-active-fg: #4338ca;
+
+    /* ---- calendar ------------------------------------------------------- */
+    --drp-months-gap: 2rem;
+    --drp-caption-fg: var(--drp-fg);
+    --drp-weekday-fg: var(--drp-muted-fg);
+
+    /* ---- caption dropdowns ---------------------------------------------- */
+    --drp-dropdown-bg: var(--drp-bg);
+    --drp-dropdown-fg: var(--drp-fg);
+    --drp-dropdown-border-color: var(--drp-border);
+    --drp-dropdown-radius: var(--drp-radius);
+
+    /* ---- month navigation ------------------------------------------------ */
+    --drp-nav-button-size: 1.75rem;
+    --drp-nav-fg: var(--drp-fg);
+    --drp-nav-hover-bg: var(--drp-hover-bg);
+    --drp-nav-radius: var(--drp-radius);
+
+    /* ---- days ------------------------------------------------------------ */
+    --drp-day-size: 2.25rem;
+    /* Separate from --drp-radius so square fields can sit above round days,
+       which is what Material UI's own picker looks like. */
+    --drp-day-radius: var(--drp-radius);
+    --drp-day-hover-bg: var(--drp-hover-bg);
+    --drp-day-selected-bg: var(--drp-accent);
+    --drp-day-selected-fg: var(--drp-accent-fg);
+    --drp-day-range-bg: #e0e7ff;
+    --drp-day-range-fg: #312e81;
+    --drp-day-today-fg: var(--drp-accent);
+    --drp-day-disabled-fg: var(--drp-disabled-fg);
+    --drp-day-outside-fg: var(--drp-muted-fg);
+
+    /* ---- time picker ------------------------------------------------------ */
+    --drp-time-input-bg: var(--drp-input-bg);
+    --drp-time-input-fg: var(--drp-input-fg);
+    --drp-time-input-border-color: var(--drp-input-border-color);
+    --drp-time-input-radius: var(--drp-input-radius);
+    --drp-time-input-width: 3rem;
+    --drp-time-input-height: 2rem;
   }
 
+  /* The root sets the whole type context, not just the family. Without the
+     size and line-height here they came from the host's body text, so the
+     separator between the two fields ran at a different size from the fields
+     themselves. */
   .drp-root {
     position: relative;
     display: inline-flex;
     flex-direction: column;
     font-family: var(--drp-font-family);
+    font-size: var(--drp-font-size);
+    line-height: var(--drp-line-height);
+    color-scheme: var(--drp-color-scheme);
   }
 
   .drp-input-group {
     display: inline-flex;
     align-items: center;
-    gap: var(--drp-gap);
+    box-sizing: border-box;
+    height: var(--drp-input-group-height);
+    gap: var(--drp-input-group-gap);
+    padding: 0 var(--drp-input-group-padding-x);
+    border: var(--drp-input-group-border-width) solid var(--drp-input-group-border-color);
+    border-radius: var(--drp-input-group-radius);
+    background: var(--drp-input-group-bg);
+    transition: border-color var(--drp-transition);
+  }
+  .drp-input-group:hover {
+    border-color: var(--drp-input-group-border-hover);
+  }
+  .drp-input-group:focus-within {
+    border-color: var(--drp-input-group-border-focus);
   }
 
   .drp-input {
-    height: var(--drp-input-height);
     box-sizing: border-box;
-    border: 1px solid var(--drp-border);
-    border-radius: var(--drp-radius);
-    background: var(--drp-bg);
-    padding: 0 0.75rem;
-    font-size: var(--drp-font-size);
-    color: var(--drp-fg);
+    width: var(--drp-input-width);
+    height: var(--drp-input-height);
+    padding: 0 var(--drp-input-padding-x);
+    border: var(--drp-input-border-width) solid var(--drp-input-border-color);
+    border-radius: var(--drp-input-radius);
+    background: var(--drp-input-bg);
+    font: inherit;
+    text-align: var(--drp-input-text-align);
+    color: var(--drp-input-fg);
     outline: none;
+    transition: border-color var(--drp-transition), box-shadow var(--drp-transition);
+  }
+  .drp-input::placeholder {
+    color: var(--drp-input-placeholder-fg);
+  }
+  .drp-input:hover {
+    border-color: var(--drp-input-border-hover);
   }
   .drp-input:focus {
-    border-color: var(--drp-accent);
-    box-shadow: 0 0 0 2px var(--drp-focus-ring);
+    border-color: var(--drp-input-border-focus);
+    box-shadow: 0 0 0 var(--drp-focus-ring-width) var(--drp-focus-ring);
   }
-  .drp-input-invalid {
+  .drp-input:disabled {
+    background: var(--drp-input-disabled-bg);
+    color: var(--drp-disabled-fg);
+  }
+  .drp-input-invalid,
+  .drp-input-invalid:hover {
     border-color: var(--drp-invalid-border);
   }
   .drp-input-invalid:focus {
     border-color: var(--drp-invalid-border);
-    box-shadow: 0 0 0 2px var(--drp-invalid-ring);
+    box-shadow: 0 0 0 var(--drp-focus-ring-width) var(--drp-invalid-ring);
   }
 
   .drp-separator {
-    color: var(--drp-muted-fg);
+    display: inline-flex;
+    align-items: center;
+    color: var(--drp-separator-fg);
   }
 
   .drp-popover {
-    z-index: 50;
-    border: 1px solid var(--drp-border);
-    border-radius: var(--drp-radius);
-    background: var(--drp-bg);
+    z-index: var(--drp-popover-z-index);
+    border: 1px solid var(--drp-popover-border-color);
+    border-radius: var(--drp-popover-radius);
+    background: var(--drp-popover-bg);
     box-shadow: var(--drp-popover-shadow);
+    font-family: var(--drp-font-family);
+    font-size: var(--drp-font-size);
+    line-height: var(--drp-line-height);
+    color: var(--drp-popover-fg);
+    color-scheme: var(--drp-color-scheme);
   }
 
   .drp-panel {
@@ -104,21 +246,22 @@
     width: var(--drp-shortcuts-width);
     flex-direction: column;
     gap: 0.25rem;
-    border-right: 1px solid var(--drp-border);
+    border-right: 1px solid var(--drp-popover-border-color);
     padding: 0.5rem;
   }
   .drp-shortcut {
     border: none;
     background: none;
-    border-radius: var(--drp-radius);
+    border-radius: var(--drp-shortcut-radius);
     padding: 0.25rem 0.5rem;
     text-align: left;
-    font-size: var(--drp-font-size);
-    color: var(--drp-fg);
+    font: inherit;
+    color: var(--drp-shortcut-fg);
     cursor: pointer;
+    transition: background-color var(--drp-transition);
   }
   .drp-shortcut:hover {
-    background: var(--drp-hover-bg);
+    background: var(--drp-shortcut-hover-bg);
   }
   .drp-shortcut-active {
     background: var(--drp-shortcut-active-bg);
@@ -139,7 +282,7 @@
     position: relative;
     box-sizing: border-box;
     padding: var(--drp-panel-padding);
-    color: var(--drp-fg);
+    color: var(--drp-popover-fg);
   }
   .drp-calendar * {
     box-sizing: border-box;
@@ -148,7 +291,7 @@
     position: relative;
     display: flex;
     flex-wrap: wrap;
-    gap: 2rem;
+    gap: var(--drp-months-gap);
     max-width: fit-content;
   }
   /* A flex column rather than a `> * + *` margin rule. With
@@ -158,7 +301,7 @@
      child on the other — and the sibling selector gave a top margin to one
      month only, leaving the two grids 8px out of line. The buttons are
      absolutely positioned, which takes them out of flex layout entirely, so
-     `gap` cannot see them. */
+     `gap` cannot see them at all. */
   .drp-month {
     position: relative;
     display: flex;
@@ -172,9 +315,8 @@
     display: flex;
     justify-content: center;
     padding: 0 var(--drp-nav-button-size);
-    font-size: var(--drp-font-size);
     font-weight: var(--drp-font-weight-medium);
-    color: var(--drp-fg);
+    color: var(--drp-caption-fg);
   }
   /* react-day-picker pairs each <select> with an aria-hidden label span and
      hides the select behind it. This component leaves the select natively
@@ -194,12 +336,12 @@
     align-items: center;
   }
   .drp-dropdown {
-    border: 1px solid var(--drp-border);
-    border-radius: var(--drp-radius);
-    background: var(--drp-bg);
+    border: 1px solid var(--drp-dropdown-border-color);
+    border-radius: var(--drp-dropdown-radius);
+    background: var(--drp-dropdown-bg);
     padding: 0.125rem 0.25rem;
-    font-size: var(--drp-font-size);
-    color: var(--drp-fg);
+    font: inherit;
+    color: var(--drp-dropdown-fg);
   }
 
   /* navLayout="around" puts the two buttons directly inside the month and
@@ -222,14 +364,15 @@
     padding: 0;
     border: none;
     background: none;
-    border-radius: var(--drp-radius);
+    border-radius: var(--drp-nav-radius);
     font: inherit;
-    color: var(--drp-fg);
+    color: var(--drp-nav-fg);
     cursor: pointer;
     appearance: none;
+    transition: background-color var(--drp-transition);
   }
   .drp-nav-button:hover {
-    background: var(--drp-hover-bg);
+    background: var(--drp-nav-hover-bg);
   }
   .drp-nav-button:disabled,
   .drp-nav-button[aria-disabled='true'] {
@@ -259,7 +402,7 @@
     font-size: var(--drp-font-size-sm);
     font-weight: 400;
     text-align: center;
-    color: var(--drp-muted-fg);
+    color: var(--drp-weekday-fg);
   }
 
   /* The cell carries the size of the grid and the button fills it. Splitting
@@ -283,42 +426,48 @@
     padding: 0;
     border: none;
     background: none;
-    border-radius: var(--drp-radius);
+    border-radius: var(--drp-day-radius);
     font: inherit;
-    font-size: var(--drp-font-size);
     color: inherit;
     cursor: pointer;
+    transition: background-color var(--drp-transition);
   }
   .drp-day:hover {
-    background: var(--drp-hover-bg);
+    background: var(--drp-day-hover-bg);
   }
+  /* The selection classes land on the cell, so the fill sits there and the
+     button stays transparent — that is what keeps a range contiguous across
+     the gaps between cells. The middle of a range squares off deliberately,
+     whatever --drp-day-radius says, so the run reads as one bar. */
   .drp-day-selected,
   .drp-day-range-start,
   .drp-day-range-end {
-    background: var(--drp-accent);
-    color: var(--drp-accent-fg);
+    background: var(--drp-day-selected-bg);
+    border-radius: var(--drp-day-radius);
+    color: var(--drp-day-selected-fg);
   }
   .drp-day-range-middle {
-    background: var(--drp-range-bg);
-    color: var(--drp-range-fg);
+    background: var(--drp-day-range-bg);
+    border-radius: 0;
+    color: var(--drp-day-range-fg);
   }
   .drp-day-today {
     font-weight: 600;
-    color: var(--drp-today-fg);
+    color: var(--drp-day-today-fg);
   }
   .drp-day-disabled {
-    color: var(--drp-disabled-fg);
+    color: var(--drp-day-disabled-fg);
   }
   .drp-day-disabled .drp-day {
     text-decoration: line-through;
     cursor: default;
   }
   .drp-day-outside {
-    color: var(--drp-muted-fg);
+    color: var(--drp-day-outside-fg);
   }
   .drp-day-focused {
-    outline: 2px solid var(--drp-focus-ring);
-    outline-offset: -2px;
+    outline: var(--drp-focus-ring-width) solid var(--drp-focus-ring);
+    outline-offset: calc(-1 * var(--drp-focus-ring-width));
   }
   /* Showing more than one month leaves surplus cells for the adjacent month's
      days. react-day-picker marks them and its sheet hid them; without a rule
@@ -336,17 +485,18 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    border-top: 1px solid var(--drp-border);
+    border-top: 1px solid var(--drp-popover-border-color);
     padding: 0.5rem;
   }
   .drp-time-picker-input {
-    width: 3rem;
-    height: 2rem;
-    border: 1px solid var(--drp-border);
-    border-radius: var(--drp-radius);
+    box-sizing: border-box;
+    width: var(--drp-time-input-width);
+    height: var(--drp-time-input-height);
+    border: 1px solid var(--drp-time-input-border-color);
+    border-radius: var(--drp-time-input-radius);
+    background: var(--drp-time-input-bg);
+    font: inherit;
     text-align: center;
-    font-size: var(--drp-font-size);
-    color: var(--drp-fg);
-    background: var(--drp-bg);
+    color: var(--drp-time-input-fg);
   }
 }
