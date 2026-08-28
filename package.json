@@ -30,6 +30,7 @@
     "dev": "vite --config playground/vite.config.ts",
     "typecheck:react18": "tsc --noEmit -p tsconfig.react18.json",
     "verify": "npm run typecheck && npm run typecheck:react18 && npm test",
+    "docs:tokens": "node scripts/tokens.ts",
     "prepublishOnly": "tsup"
   },
   "peerDependencies": {
