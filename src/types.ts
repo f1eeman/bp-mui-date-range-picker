@@ -1,3 +1,4 @@
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import type { Locale } from 'date-fns';
 import type { Matcher } from 'react-day-picker';
 
@@ -37,8 +38,19 @@ export type Slot =
 /** Slot -> Tailwind class string overrides. */
 export type ClassNames = Partial<Record<Slot, string>>;
 
-/** Props for the top-level DateRangeInput component. */
-export interface DateRangeInputProps {
+/**
+ * Props for the top-level DateRangeInput component.
+ *
+ * Extends the props of the root `<div>`, so `className`, `style`, `id`,
+ * `data-*` and `aria-*` reach it directly. Without that a host had to wrap the
+ * component in an element of its own just to place it — and per-instance
+ * theming, which means putting `--drp-*` in `style`, had nowhere to go.
+ */
+export interface DateRangeInputProps
+  extends Omit<
+    ComponentPropsWithoutRef<'div'>,
+    'onChange' | 'defaultValue' | 'children'
+  > {
   value?: DateRange;
   defaultValue?: DateRange;
   onChange?: (range: DateRange) => void;
@@ -58,7 +70,20 @@ export interface DateRangeInputProps {
    */
   allowSingleDayRange?: boolean;
 
-  contiguousCalendarMonths?: boolean;
+  /**
+   * How many months the calendar shows. Defaults to 2.
+   *
+   * Replaces `contiguousCalendarMonths`, which was a boolean and so could only
+   * ever mean "two". One month is a common ask for a dense filter row and was
+   * unreachable.
+   */
+  numberOfMonths?: number;
+  /**
+   * When true (the default) the months share one grid and step together, so
+   * navigating shows the next consecutive pair. When false each month gets its
+   * own grid and navigates independently.
+   */
+  linkedNavigation?: boolean;
   shortcuts?: boolean | Shortcut[];
   timePrecision?: 'minute' | 'second';
   /**
@@ -68,8 +93,24 @@ export interface DateRangeInputProps {
    */
   closeOnSelection?: boolean;
 
+  /** Controlled open state of the popover. */
+  open?: boolean;
+  /** Initial open state when the popover is uncontrolled. */
+  defaultOpen?: boolean;
+  /**
+   * Called whenever the popover opens or closes, for either reason — a field
+   * taking focus, Escape, a click outside, or a completed selection under
+   * `closeOnSelection`.
+   */
+  onOpenChange?: (open: boolean) => void;
+
   disabled?: boolean;
   placeholder?: { start?: string; end?: string };
+  /**
+   * Node between the two fields. Defaults to an arrow. Anything renderable
+   * works — a dash, an icon, or `null` to drop it.
+   */
+  separator?: ReactNode;
 
   /**
    * Node the popover is portalled into. Defaults to `document.body`.

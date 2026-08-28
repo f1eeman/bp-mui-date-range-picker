@@ -45,7 +45,8 @@ describe('rdpClassNames', () => {
       <RangeCalendar
         value={[new Date(2026, 4, 10), new Date(2026, 4, 20)]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );

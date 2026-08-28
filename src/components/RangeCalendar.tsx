@@ -8,7 +8,10 @@ import { rdpClassNames } from './rdpClassNames';
 export interface RangeCalendarProps {
   value: DateRange;
   onChange: (range: DateRange) => void;
-  contiguous: boolean;
+  /** How many months to show. */
+  numberOfMonths: number;
+  /** True: one grid whose months step together. False: independent grids. */
+  linked: boolean;
   defaultMonth?: Date;
   minDate?: Date;
   maxDate?: Date;
@@ -60,11 +63,15 @@ function yearBounds(
   };
 }
 
-/** A range calendar: one grid when contiguous, two independent grids otherwise. */
+/**
+ * A range calendar. `linked` renders one grid whose months step together;
+ * otherwise each month gets its own grid and navigates on its own.
+ */
 export function RangeCalendar({
   value,
   onChange,
-  contiguous,
+  numberOfMonths,
+  linked,
   defaultMonth,
   minDate,
   maxDate,
@@ -72,9 +79,34 @@ export function RangeCalendar({
   locale,
   classNames,
 }: RangeCalendarProps) {
-  const baseMonth = defaultMonth ?? value[0] ?? new Date();
-  const [leftMonth, setLeftMonth] = useState<Date>(baseMonth);
-  const [rightMonth, setRightMonth] = useState<Date>(addMonths(baseMonth, 1));
+  const count = Math.max(1, Math.floor(numberOfMonths));
+
+  // Read once, on mount: `new Date()` would otherwise be a fresh value every
+  // render and reset the view while the user is navigating.
+  const [baseMonth] = useState<Date>(() => defaultMonth ?? value[0] ?? new Date());
+  const [linkedMonth, setLinkedMonth] = useState<Date>(baseMonth);
+  const [unlinkedMonths, setUnlinkedMonths] = useState<Date[]>(() =>
+    Array.from({ length: count }, (_, i) => addMonths(baseMonth, i)),
+  );
+
+  // `numberOfMonths` can change after mount, and hooks cannot be added per
+  // panel. Grow or trim from the last month already on screen so panels the
+  // user has navigated keep their position instead of snapping back.
+  const panelMonths =
+    unlinkedMonths.length === count
+      ? unlinkedMonths
+      : Array.from(
+          { length: count },
+          (_, i) =>
+            unlinkedMonths[i] ??
+            addMonths(
+              unlinkedMonths[unlinkedMonths.length - 1] ?? baseMonth,
+              i - unlinkedMonths.length + 1,
+            ),
+        );
+
+  const setPanelMonth = (index: number, month: Date) =>
+    setUnlinkedMonths(panelMonths.map((m, i) => (i === index ? month : m)));
 
   // RDP v9 onSelect for range mode: OnSelectHandler<DateRange | undefined>
   // Signature: (selected: DateRange | undefined, triggerDate, modifiers, e) => void
@@ -96,21 +128,27 @@ export function RangeCalendar({
     classNames: rdpClassNames(classNames),
   };
 
-  if (contiguous) {
+  if (linked) {
     return (
       <DayPicker
         {...shared}
-        numberOfMonths={2}
-        month={leftMonth}
-        onMonthChange={setLeftMonth}
+        numberOfMonths={count}
+        month={linkedMonth}
+        onMonthChange={setLinkedMonth}
       />
     );
   }
 
   return (
     <div className="drp-panels">
-      <DayPicker {...shared} month={leftMonth} onMonthChange={setLeftMonth} />
-      <DayPicker {...shared} month={rightMonth} onMonthChange={setRightMonth} />
+      {panelMonths.map((month, i) => (
+        <DayPicker
+          key={i}
+          {...shared}
+          month={month}
+          onMonthChange={(next) => setPanelMonth(i, next)}
+        />
+      ))}
     </div>
   );
 }

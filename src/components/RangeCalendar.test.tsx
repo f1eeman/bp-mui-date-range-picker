@@ -9,7 +9,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -21,7 +22,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous={false}
+        numberOfMonths={2}
+        linked={false}
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -34,7 +36,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={onChange}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -64,7 +67,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -76,7 +80,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
         minDate={new Date(2025, 0, 1)}
         maxDate={new Date(2027, 11, 31)}
@@ -90,7 +95,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date()}
       />,
     );
@@ -105,7 +111,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -131,7 +138,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -143,7 +151,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -174,7 +183,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous={false}
+        numberOfMonths={2}
+        linked={false}
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -189,7 +199,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous={false}
+        numberOfMonths={2}
+        linked={false}
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
@@ -201,7 +212,8 @@ describe('RangeCalendar', () => {
       <RangeCalendar
         value={[null, null]}
         onChange={vi.fn()}
-        contiguous
+        numberOfMonths={2}
+        linked
         defaultMonth={new Date(2026, 4, 1)}
       />,
     );
