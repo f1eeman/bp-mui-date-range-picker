@@ -372,6 +372,10 @@
       var(--drp-dropdown-padding-y) var(--drp-dropdown-padding-x);
     font: inherit;
     color: var(--drp-dropdown-fg);
+    cursor: pointer;
+  }
+  .drp-dropdown:disabled {
+    cursor: revert;
   }
   /* A mask rather than a background image, so the caret takes `currentColor`
      and needs no second copy for dark mode. */
