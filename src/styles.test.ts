@@ -33,6 +33,18 @@ describe('styles.css', () => {
     expect(css).not.toContain(':where(');
   });
 
+  it('spaces a month with flex gap, not an adjacent-sibling margin', () => {
+    // `navLayout="around"` renders the previous-month button before the caption
+    // in the first month and the next-month button after it in the last. The
+    // buttons are absolutely positioned but still count as siblings, so a
+    // `.drp-month > * + *` margin landed on one month's caption and not the
+    // other's, leaving the two grids 8px out of line. Absolutely positioned
+    // children are excluded from flex layout, so `gap` cannot see them.
+    expect(css).not.toMatch(/\.drp-month\s*>\s*\*\s*\+\s*\*/);
+    expect(css).toMatch(/\.drp-month \{[^}]*display:\s*flex/);
+    expect(css).toMatch(/\.drp-month \{[^}]*gap:/);
+  });
+
   it('drives styled values from --drp-* tokens', () => {
     expect(css).toContain('var(--drp-accent');
     expect(css).toContain('var(--drp-border');

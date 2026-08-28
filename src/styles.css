@@ -151,11 +151,19 @@
     gap: 2rem;
     max-width: fit-content;
   }
+  /* A flex column rather than a `> * + *` margin rule. With
+     navLayout="around" react-day-picker renders the previous-month button
+     before the caption in the first month and the next-month button after it
+     in the last, so the caption was a second child on one side and a first
+     child on the other — and the sibling selector gave a top margin to one
+     month only, leaving the two grids 8px out of line. The buttons are
+     absolutely positioned, which takes them out of flex layout entirely, so
+     `gap` cannot see them. */
   .drp-month {
     position: relative;
-  }
-  .drp-month > * + * {
-    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
   .drp-month-grid {
     border-collapse: collapse;
