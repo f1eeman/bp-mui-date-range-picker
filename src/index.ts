@@ -1,5 +1,10 @@
 export { DateRangeInput } from './DateRangeInput';
-export { createDefaultShortcuts } from './utils/shortcuts';
+export {
+  shortcutRanges,
+  defaultShortcutLabels,
+  createDefaultShortcuts,
+} from './utils/shortcuts';
+export type { ShortcutKey } from './utils/shortcuts';
 export { defaultClassNames } from './styles/defaultClassNames';
 export type {
   DateRange,

@@ -70,3 +70,12 @@ days count.
 
 A named preset that fills both boundaries at once. Concrete on both ends by
 definition: a shortcut never produces a half-filled range.
+
+Its two halves have different owners. The **range** — "the last seven days",
+"this month" — is the same calculation in every application, and belongs to
+the package. The **label** is the host's copy, in the host's language, and
+never does. A package that ships them welded together forces a host that needs
+its own wording to reimplement the arithmetic too.
+
+Where a week begins is part of the calculation, not a detail of it, and it is
+decided by the locale rather than by the package.

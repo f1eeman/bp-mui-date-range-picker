@@ -254,6 +254,36 @@ function Example() {
 }
 ```
 
+### Shortcuts
+
+`shortcuts={true}` gives you five presets in English. That is the quick start,
+and English is the only language it speaks.
+
+For anything else — a translation, a different set, a different order, or a
+preset of your own — build the list yourself. The package exports the range
+arithmetic separately from the labels, so you do not have to reimplement "the
+last seven days" just to rename it:
+
+```tsx
+import { DateRangeInput, shortcutRanges } from 'bp-mui-date-range-picker';
+import { ru } from 'date-fns/locale/ru';
+
+<DateRangeInput
+  locale={ru}
+  shortcuts={[
+    { label: 'Сегодня', range: shortcutRanges.today() },
+    { label: 'Неделю назад', range: shortcutRanges.last7Days() },
+    { label: 'Эта неделя', range: shortcutRanges.thisWeek(new Date(), ru) },
+    { label: 'Квартал', range: myOwnQuarter() },
+  ]}
+/>;
+```
+
+`today`, `last7Days`, `last30Days`, `thisWeek` and `thisMonth` each take
+`(now?)` and return a `[Date, Date]`. Pass the locale to `thisWeek` — weeks
+start on Sunday by default, and a calendar rendered with `ru` starts them on
+Monday, so without it the shortcut disagrees with the grid beside it.
+
 ### Props
 
 Beyond the ones below, `DateRangeInputProps` extends the root `<div>`'s props,

@@ -1,4 +1,5 @@
 import { forwardRef, useCallback, useMemo, useState } from 'react';
+import type { Locale } from 'date-fns';
 import type { DateRange, DateRangeInputProps, Shortcut } from './types';
 import { useDateRangeInput } from './hooks/useDateRangeInput';
 import { useDateParsing } from './hooks/useDateParsing';
@@ -13,9 +14,14 @@ import { ShortcutsPanel } from './components/ShortcutsPanel';
 import { TimePicker } from './components/TimePicker';
 
 /** Resolves the `shortcuts` prop into a concrete list (or null when disabled). */
-function resolveShortcuts(shortcuts: DateRangeInputProps['shortcuts']): Shortcut[] | null {
+function resolveShortcuts(
+  shortcuts: DateRangeInputProps['shortcuts'],
+  locale?: Locale,
+): Shortcut[] | null {
   if (!shortcuts) return null;
-  return shortcuts === true ? createDefaultShortcuts() : shortcuts;
+  // The locale decides where a week starts, so the built-in "this week"
+  // agrees with the grid it is drawn beside rather than assuming Sunday.
+  return shortcuts === true ? createDefaultShortcuts(new Date(), locale) : shortcuts;
 }
 
 /**
@@ -58,7 +64,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
 
     const state = useDateRangeInput({ value, defaultValue, onChange });
     const parsing = useDateParsing({ formatDate, parseDate, locale });
-    const presets = useMemo(() => resolveShortcuts(shortcuts), [shortcuts]);
+    const presets = useMemo(() => resolveShortcuts(shortcuts, locale), [shortcuts, locale]);
 
     const validateDate = useCallback(
       (date: Date): boolean => {
