@@ -1,34 +1,33 @@
-/* Two host design systems, reproduced with nothing but `--drp-*` assignments.
-   No Tailwind class, no slot override, no patch to the package — that is the
-   point of the exercise. If a look cannot be reached from here, the token
-   vocabulary is short of something, and this file is where that shows up.
+/* Two design systems the component has to be able to take on, built from
+   `--drp-*` assignments and nothing else. No Tailwind class, no slot override,
+   no patch to the package — that is the point of the exercise. If a look
+   cannot be reached from here, the token vocabulary is short of something, and
+   this file is where that shows up.
 
-   Values are copied from the hosts, with the source named next to each one so
-   they can be checked by eye rather than trusted.
+   Both are modelled on real applications: one that wraps the two fields in a
+   single outlined box, and one that follows Material UI, in light and dark.
 
    Deliberately unlayered. This is the host's stylesheet, and unlayered CSS
    outranks the package's `bp-drp` layer — which is exactly the arrangement the
    package is built for (docs/adr/0002). The attribute lives on <html> so the
    portalled popover inherits the tokens with no `container` prop needed. */
 
-/* --- the adopting host ------------------------------------------------------
-   the host's colour variables, and the shape of an existing field: one
-   outlined box holding two borderless fields. */
-[data-skin='dp'] {
-  --drp-accent: #d83440; /* --color-accent-dark */
-  --drp-accent-fg: #fff; /* --color-white */
+/* --- merged: one outlined box holding two borderless fields --------------- */
+[data-skin='merged'] {
+  --drp-accent: #d83440;
+  --drp-accent-fg: #fff;
   --drp-bg: #fff;
-  --drp-fg: #222; /* --color-primary-dark */
-  --drp-muted-fg: #a8a8a8; /* --color-caption */
-  --drp-border: #dbdbdb; /* --color-border */
-  --drp-hover-bg: #f4f5f4; /* --color-default-bg */
-  --drp-radius: 0.25rem; /* Tailwind `rounded` */
-  --drp-font-family: Roboto, Arial, sans-serif; /* global.css */
-  --drp-font-size: 0.875rem; /* --text-sm-font-size */
-  --drp-line-height: 1.7; /* --text-sm-line-height */
+  --drp-fg: #222;
+  --drp-muted-fg: #a8a8a8;
+  --drp-border: #dbdbdb;
+  --drp-hover-bg: #f4f5f4;
+  --drp-radius: 0.25rem;
+  --drp-font-family: Roboto, Arial, sans-serif;
+  --drp-font-size: 0.875rem;
+  --drp-line-height: 1.7;
 
   /* One shared outline around both fields. */
-  --drp-input-group-height: 2rem; /* h-8 */
+  --drp-input-group-height: 2rem;
   --drp-input-group-gap: 0;
   --drp-input-group-bg: #fff;
   --drp-input-group-border-width: 1px;
@@ -40,37 +39,37 @@
   --drp-input-border-width: 0;
   --drp-input-bg: transparent;
   --drp-input-height: 100%;
-  --drp-input-width: 7rem; /* w-28 */
-  --drp-input-padding-x: 0.375rem; /* px-1.5 */
+  --drp-input-width: 7rem;
+  --drp-input-padding-x: 0.375rem;
   --drp-input-text-align: center;
   --drp-focus-ring-width: 0; /* focus shows on the group, not the field */
 
   --drp-nav-fg: var(--drp-accent);
   --drp-day-range-bg: #d8344033; /* accent at 20% */
   --drp-day-range-fg: var(--drp-fg);
-  --drp-popover-shadow: 0 2px 8px rgb(20 21 31 / 10%); /* --shadow-card */
+  --drp-popover-shadow: 0 2px 8px rgb(20 21 31 / 10%);
 }
 
-/* --- the other reference host, light --------------------------------------------------
-   the host's design tokens. Material UI shapes: an outlined field whose border
-   thickens on focus, round days over square fields. */
-[data-skin='the other reference host'] {
-  --drp-accent: #2f6fed; /* figma.accent900 */
-  --drp-accent-fg: #ffffff; /* roles.onAccent */
-  --drp-bg: #ffffff; /* roles.surface */
-  --drp-fg: #192e4c; /* roles.textPrimary */
-  --drp-muted-fg: #707783; /* roles.textSecondary (a11y-corrected) */
-  --drp-border: #dbdbdb; /* roles.fieldBorder */
-  --drp-hover-bg: #f4f5f4; /* roles.canvas */
-  --drp-disabled-fg: #a8a8a8; /* roles.textDisabled */
-  --drp-radius: 4px; /* tokens.radius */
+/* --- material, light ------------------------------------------------------
+   An outlined field whose border thickens on focus, round days over square
+   fields — the shapes Material UI draws. */
+[data-skin='material'] {
+  --drp-accent: #2f6fed;
+  --drp-accent-fg: #ffffff;
+  --drp-bg: #ffffff;
+  --drp-fg: #192e4c;
+  --drp-muted-fg: #707783;
+  --drp-border: #dbdbdb;
+  --drp-hover-bg: #f4f5f4;
+  --drp-disabled-fg: #a8a8a8;
+  --drp-radius: 4px;
   --drp-font-family: Roboto, Helvetica, Arial, sans-serif;
-  --drp-font-size: 0.875rem; /* typeScale.p14 */
-  --drp-line-height: 1.7143; /* 24/14 */
+  --drp-font-size: 0.875rem;
+  --drp-line-height: 1.7143;
   --drp-transition: 200ms cubic-bezier(0.4, 0, 0.2, 1); /* MUI standard easing */
 
-  /* Outlined field: border darkens on hover, thickens and takes the accent on
-     focus, and there is no ring — Material UI does not draw one. */
+  /* The border darkens on hover, thickens and takes the accent on focus, and
+     there is no ring — Material UI does not draw one. */
   --drp-input-height: 2.5rem;
   --drp-input-border-hover: var(--drp-fg);
   --drp-input-border-focus: var(--drp-accent);
@@ -78,42 +77,43 @@
   --drp-focus-ring-width: 0;
 
   --drp-day-radius: 50%;
-  --drp-day-range-bg: #e8f2ff; /* roles.accentSoft */
+  --drp-day-range-bg: #e8f2ff;
   --drp-day-range-fg: var(--drp-fg);
 
-  --drp-popover-bg: #ffffff; /* roles.surfaceRaised */
-  --drp-popover-shadow: 0 2px 8px rgba(20, 21, 31, 0.1); /* shadows.popper */
-  /* Material UI puts modals at 1300 and the picker is used inside dialogs. */
+  --drp-popover-bg: #ffffff;
+  --drp-popover-shadow: 0 2px 8px rgba(20, 21, 31, 0.1);
+  /* Material UI puts modals at 1300, and a picker used inside a dialog has to
+     clear them. */
   --drp-popover-z-index: 1400;
 }
 
-/* --- the other reference host, dark ---------------------------------------------------
-   Only the values that differ. --drp-color-scheme is the one that native
+/* --- material, dark -------------------------------------------------------
+   Only the values that differ. --drp-color-scheme is the one the native
    controls need: the month and year <select> elements are painted by the
-   browser, and the other reference host does not load CssBaseline, so nothing else tells
-   them the page went dark. */
-[data-skin='the other reference host'][data-scheme='dark'] {
+   browser, and an app that skips a CSS reset has nothing else telling them the
+   page went dark. */
+[data-skin='material'][data-scheme='dark'] {
   --drp-color-scheme: dark;
-  --drp-accent: #5f92f2; /* navy.accent900 */
-  --drp-accent-fg: #0c131d; /* darkRoles.onAccent — dark text on a light accent */
-  --drp-bg: #151f2e; /* navy.bgSurface */
-  --drp-fg: #eff2f5; /* navy.textStrong */
-  --drp-muted-fg: #adb6c2; /* navy.textMuted */
-  --drp-disabled-fg: #768293; /* navy.textFaint */
-  --drp-border: rgba(255, 255, 255, 0.23); /* darkRoles.fieldBorder */
+  --drp-accent: #5f92f2;
+  --drp-accent-fg: #0c131d; /* dark text on a lightened accent */
+  --drp-bg: #151f2e;
+  --drp-fg: #eff2f5;
+  --drp-muted-fg: #adb6c2;
+  --drp-disabled-fg: #768293;
+  --drp-border: rgba(255, 255, 255, 0.23);
   --drp-hover-bg: rgba(255, 255, 255, 0.08);
-  --drp-popover-bg: #1d2b3e; /* navy.bgRaised */
+  --drp-popover-bg: #1d2b3e;
   --drp-popover-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  --drp-day-range-bg: #1c2c4a; /* navy.accent100 */
+  --drp-day-range-bg: #1c2c4a;
   --drp-day-range-fg: var(--drp-fg);
 }
 
 /* The page itself follows the skin, so the component is judged against the
    background it will actually sit on. */
-[data-skin='the other reference host'][data-scheme='dark'] body {
+[data-skin='material'][data-scheme='dark'] body {
   background: #0c131d;
   color: #eff2f5;
 }
-[data-skin='the other reference host'][data-scheme='dark'] pre {
+[data-skin='material'][data-scheme='dark'] pre {
   background: #1d2b3e;
 }

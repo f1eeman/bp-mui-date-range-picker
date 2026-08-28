@@ -156,7 +156,8 @@ describe('DateRangeInput', () => {
   });
   describe('root passthrough', () => {
     // Without these a host had to wrap the component in an element of its own
-    // just to position it — which is exactly what the adopting host did — and
+    // just to position it — which is exactly what the first host to use the
+    // package ended up doing — and
     // per-instance theming had nowhere to put its --drp-* declarations.
     it('merges className onto the root instead of replacing it', () => {
       const { container } = render(<DateRangeInput className="mt-4 w-full" />);
@@ -204,7 +205,7 @@ describe('DateRangeInput', () => {
     });
 
     it('drops the separator entirely for null', () => {
-      // the adopting host blanked the glyph with `text-[0]` and drew its own with
+      // A host blanked the glyph with `text-[0]` and drew its own with
       // an ::after pseudo-element, because there was no way to say "none".
       const { container } = render(<DateRangeInput separator={null} />);
       expect(container.querySelector('.drp-separator')).toBeNull();

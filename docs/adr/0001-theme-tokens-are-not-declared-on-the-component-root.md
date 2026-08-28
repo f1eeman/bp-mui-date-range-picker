@@ -3,9 +3,9 @@
 A custom property set on an element always beats the same property inherited
 into it, so `.drp-root { --drp-accent: … }` made every `--drp-*` default
 unoverridable from anywhere outside the component. The documented per-instance
-and per-wrapper theming in the README never worked, and `the adopting host`
-discovered this the hard way and rethemed the component entirely through slot
-classes and `!important` instead. Package defaults therefore live at `:root`
+and per-wrapper theming in the README never worked, and the one host already
+using the package discovered this the hard way and rethemed the component
+entirely through slot classes and `!important` instead. Package defaults therefore live at `:root`
 inside the package layer, where a host declaration at any depth outranks them.
 
 ## Consequences

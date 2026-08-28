@@ -1,14 +1,14 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { DateRangeInput, type DateRange } from 'bp-mui-date-range-picker';
 
-type Skin = 'default' | 'dp' | 'the other reference host';
+type Skin = 'default' | 'merged' | 'material';
 
-/** Everything the dp skin cannot say in tokens, because it is structure. */
+/** Everything a skin cannot say in tokens, because it is structure. */
 const skinProps: Record<Skin, { separator?: string; numberOfMonths?: number }> = {
   default: {},
-  // the adopting host draws an em dash between the fields, not an arrow.
-  dp: { separator: '—' },
-  the other reference host: {},
+  // This one draws an em dash between the fields, not an arrow.
+  merged: { separator: '—' },
+  material: {},
 };
 
 export function App() {
@@ -48,15 +48,15 @@ export function App() {
             onChange={(e) => setSkin(e.target.value as Skin)}
           >
             <option value="default">package default</option>
-            <option value="dp">the adopting host</option>
-            <option value="the other reference host">the other reference host</option>
+            <option value="merged">merged field</option>
+            <option value="material">material</option>
           </select>
         </label>
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
             checked={dark}
-            disabled={skin !== 'the other reference host'}
+            disabled={skin !== 'material'}
             onChange={(e) => setDark(e.target.checked)}
           />
           Dark
@@ -90,7 +90,7 @@ export function App() {
       </div>
 
       <p className="text-sm opacity-70">
-        The two host skins are `--drp-*` assignments and nothing else — see
+        Both skins are `--drp-*` assignments and nothing else — see
         playground/skins.css. Only the separator is a prop, because it is a node
         rather than a value.
       </p>

@@ -12,7 +12,7 @@ import type { Shortcut } from '../types';
  * the label is the host's copy, in the host's language, while "the last seven
  * days" is the same calculation everywhere. Shipping them welded together meant
  * a host that needed its own wording had to reimplement the arithmetic as well
- * — which is exactly what happened in the other reference host.
+ * — which is exactly what one of the reference hosts had already done.
  *
  * Pass a locale wherever the week matters. `startOfWeek` defaults to Sunday,
  * while a calendar rendered with a `ru` locale starts its weeks on Monday, so

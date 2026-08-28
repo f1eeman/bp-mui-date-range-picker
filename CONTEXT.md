@@ -9,19 +9,19 @@ An application that embeds the picker. The host owns its own design system,
 its own cascade, and its own React/Tailwind versions. The picker is a guest in
 it and never assumes it is the only stylesheet on the page.
 
-Two hosts define what "flexible enough" means, and disagree on almost
-everything: `the adopting host` (React 18, MUI 6, Tailwind 3, plain `:root`
-custom properties, light only, no cascade layers) and `the other reference host`
-(React 19, MUI 7, Tailwind 4, MUI CSS-variable palette, light and dark,
-strict layer order). A change that only satisfies one of them has not
-satisfied the requirement.
+Two reference hosts define what "flexible enough" means, and they disagree on
+almost everything: one on React 18, Material UI 6 and Tailwind 3, themed with
+plain `:root` custom properties, light only, no cascade layers; the other on
+React 19, Material UI 7 and Tailwind 4, themed from a CSS-variable palette,
+light and dark, with a strict layer order. A change that only satisfies one of
+them has not satisfied the requirement.
 
 ## Reference host
 
 A host whose visual language the picker must be able to reproduce without
-patching the package. Both hosts above are reference hosts. Being a reference
-host does **not** mean the host uses the picker everywhere — `the other reference host`
-keeps its own MUI range input and serves as a styling target only.
+patching the package. Being a reference host does **not** mean the host uses
+the picker everywhere — one of the two keeps its own range input and serves as
+a styling target only.
 
 ## Theme token
 
