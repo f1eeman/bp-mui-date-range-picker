@@ -191,6 +191,7 @@ Part tokens — each defaults to a seed, override one to disagree with a detail.
 | `--drp-shortcut-radius` | `var(--drp-radius)` |
 | `--drp-caption-fg` | `var(--drp-fg)` |
 | `--drp-weekday-fg` | `var(--drp-muted-fg)` |
+| `--drp-dropdowns-gap` | `var(--drp-gap)` |
 | `--drp-dropdown-bg` | `var(--drp-bg)` |
 | `--drp-dropdown-fg` | `var(--drp-fg)` |
 | `--drp-dropdown-border-color` | `var(--drp-border)` |
