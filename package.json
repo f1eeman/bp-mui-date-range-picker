@@ -4,7 +4,10 @@
   "description": "Date range input for React, themed with CSS custom properties and slot classes, designed to sit inside someone else’s design system",
   "license": "MIT",
   "author": "f1eeman <mr.f1eeman@gmail.com>",
-  "repository": "https://github.com/f1eeman/bp-mui-date-range-picker.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/f1eeman/bp-mui-date-range-picker.git"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
