@@ -67,6 +67,9 @@
     --drp-input-group-border-width: 0;
     --drp-input-group-border-hover: var(--drp-input-group-border-color);
     --drp-input-group-border-focus: var(--drp-input-group-border-color);
+    /* Material UI's outlined field goes 1px -> 2px on focus. Kept equal to the
+       resting width by default so nothing shifts unless a host asks for it. */
+    --drp-input-group-border-width-focus: var(--drp-input-group-border-width);
     --drp-input-group-radius: var(--drp-radius);
     --drp-input-group-height: auto;
     --drp-input-group-padding-x: 0;
@@ -79,6 +82,7 @@
     --drp-input-border-hover: var(--drp-input-border-color);
     --drp-input-border-focus: var(--drp-accent);
     --drp-input-border-width: 1px;
+    --drp-input-border-width-focus: var(--drp-input-border-width);
     --drp-input-radius: var(--drp-radius);
     --drp-input-height: 2.25rem;
     --drp-input-width: auto;
@@ -179,6 +183,7 @@
   }
   .drp-input-group:focus-within {
     border-color: var(--drp-input-group-border-focus);
+    border-width: var(--drp-input-group-border-width-focus);
   }
 
   .drp-input {
@@ -203,6 +208,7 @@
   }
   .drp-input:focus {
     border-color: var(--drp-input-border-focus);
+    border-width: var(--drp-input-border-width-focus);
     box-shadow: 0 0 0 var(--drp-focus-ring-width) var(--drp-focus-ring);
   }
   .drp-input:disabled {

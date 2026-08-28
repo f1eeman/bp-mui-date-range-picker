@@ -1,21 +1,66 @@
-import { useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { DateRangeInput, type DateRange } from 'bp-mui-date-range-picker';
+
+type Skin = 'default' | 'dp' | 'the other reference host';
+
+/** Everything the dp skin cannot say in tokens, because it is structure. */
+const skinProps: Record<Skin, { separator?: string; numberOfMonths?: number }> = {
+  default: {},
+  // the adopting host draws an em dash between the fields, not an arrow.
+  dp: { separator: '—' },
+  the other reference host: {},
+};
 
 export function App() {
   const [range, setRange] = useState<DateRange>([null, null]);
   const [months, setMonths] = useState(2);
   const [linked, setLinked] = useState(true);
   const [openCount, setOpenCount] = useState(0);
+  const [skin, setSkin] = useState<Skin>('default');
+  const [dark, setDark] = useState(false);
   // Callback ref rather than useRef: the container has to be a rendered
   // element on the render that mounts the popover, and a ref object is
   // still null then.
   const [scope, setScope] = useState<HTMLDivElement | null>(null);
 
+  // On <html>, so the portalled popover inherits the tokens the same way it
+  // would in a host that declares them at :root. Nothing is forwarded to it.
+  useEffect(() => {
+    const el = document.documentElement;
+    if (skin === 'default') el.removeAttribute('data-skin');
+    else el.setAttribute('data-skin', skin);
+    if (dark) el.setAttribute('data-scheme', 'dark');
+    else el.removeAttribute('data-scheme');
+  }, [skin, dark]);
+
+  const extra = skinProps[skin];
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6 p-8">
+    <div className="mx-auto max-w-3xl space-y-6 p-8">
       <h1 className="text-xl font-semibold">DateRangeInput playground</h1>
 
-      <div className="flex items-center gap-4 text-sm">
+      <div className="flex flex-wrap items-center gap-4 text-sm">
+        <label className="flex items-center gap-2">
+          Skin
+          <select
+            className="rounded border border-zinc-300 px-1 py-0.5"
+            value={skin}
+            onChange={(e) => setSkin(e.target.value as Skin)}
+          >
+            <option value="default">package default</option>
+            <option value="dp">the adopting host</option>
+            <option value="the other reference host">the other reference host</option>
+          </select>
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={dark}
+            disabled={skin !== 'the other reference host'}
+            onChange={(e) => setDark(e.target.checked)}
+          />
+          Dark
+        </label>
         <label className="flex items-center gap-2">
           Months
           <select
@@ -36,8 +81,14 @@ export function App() {
           />
           Linked navigation
         </label>
-        <span className="text-zinc-500">opened {openCount}x</span>
+        <span className="opacity-60">opened {openCount}x</span>
       </div>
+
+      <p className="text-sm opacity-70">
+        The two host skins are `--drp-*` assignments and nothing else — see
+        playground/skins.css. Only the separator is a prop, because it is a node
+        rather than a value.
+      </p>
 
       <DateRangeInput
         value={range}
@@ -47,13 +98,14 @@ export function App() {
         onOpenChange={(open) => open && setOpenCount((n) => n + 1)}
         shortcuts
         placeholder={{ start: 'Start date', end: 'End date' }}
+        {...extra}
       />
 
       <pre className="rounded bg-zinc-100 p-3 text-sm">
         {JSON.stringify(range.map((d) => d?.toISOString() ?? null), null, 2)}
       </pre>
 
-      <h2 className="text-lg font-medium">Custom styling</h2>
+      <h2 className="text-lg font-medium">Slot overrides</h2>
       <DateRangeInput
         placeholder={{ start: 'From', end: 'To' }}
         separator="—"
@@ -64,12 +116,13 @@ export function App() {
         }}
       />
 
-      <h2 className="text-lg font-medium">Theme via CSS variables</h2>
+      <h2 className="text-lg font-medium">Theme scoped to a subtree</h2>
       {/*
         Tokens set on a wrapper reach the input group by inheritance, but the
         popover is portalled to document.body and sits outside that wrapper —
         so a subtree-scoped retheme has to point `container` back at it.
-        A host that declares its tokens at :root needs none of this.
+        A host that declares its tokens at :root, as the skins do, needs none
+        of this.
       */}
       <div
         ref={setScope}
@@ -84,8 +137,7 @@ export function App() {
 
       <h2 className="text-lg font-medium">Per-instance theme, no wrapper</h2>
       {/* `style` now lands on the component's own root, so a one-off retheme
-          needs no extra element. The popover still portals out, so it is told
-          to stay inside this instance. */}
+          needs no extra element. */}
       <DateRangeInput
         placeholder={{ start: 'From', end: 'To' }}
         data-testid="inline-themed"

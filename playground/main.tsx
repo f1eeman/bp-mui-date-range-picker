@@ -6,6 +6,8 @@ import { App } from './App';
 // loading the package first would pin `bp-drp` outside the host's order.
 import './styles.css';
 import '../src/styles.css';
+// The host's own stylesheet: unlayered, so it outranks the package layer.
+import './skins.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
