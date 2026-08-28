@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DayPicker, type DateRange as RdpRange, type Matcher } from 'react-day-picker';
 import type { Locale } from 'date-fns';
-import { addMonths } from 'date-fns';
+import { addMonths, isSameMonth, startOfMonth } from 'date-fns';
 import type { ClassNames, DateRange } from '../types';
 import { rdpClassNames } from './rdpClassNames';
 
@@ -107,6 +107,35 @@ export function RangeCalendar({
 
   const setPanelMonth = (index: number, month: Date) =>
     setUnlinkedMonths(panelMonths.map((m, i) => (i === index ? month : m)));
+
+  // Follow the selection when it lands somewhere the calendar is not looking.
+  //
+  // The view was read once at mount and never reacted to `value` again, so a
+  // shortcut — or a date typed into a field — could set a range the user then
+  // could not see: navigate to December 2027, press "This month", and the grids
+  // stayed in 2027 while the value was in 2026.
+  //
+  // Only re-anchor when the new start is off-screen. Picking a day inside a
+  // visible month must not yank the view, and in unlinked mode neither must
+  // picking one in a panel the user has paged somewhere of their own.
+  const shownMonths = linked
+    ? Array.from({ length: count }, (_, i) => addMonths(linkedMonth, i))
+    : panelMonths;
+  const anchor = value[0] ?? value[1];
+  const anchorKey = anchor ? startOfMonth(anchor).getTime() : null;
+  const [lastAnchorKey, setLastAnchorKey] = useState<number | null>(anchorKey);
+
+  if (anchorKey !== lastAnchorKey) {
+    // Adjusting state during render rather than in an effect: this reads as
+    // part of deriving the view from the value, and it avoids painting the
+    // wrong month first.
+    setLastAnchorKey(anchorKey);
+    if (anchor && !shownMonths.some((m) => isSameMonth(m, anchor))) {
+      const start = startOfMonth(anchor);
+      if (linked) setLinkedMonth(start);
+      else setUnlinkedMonths(Array.from({ length: count }, (_, i) => addMonths(start, i)));
+    }
+  }
 
   // RDP v9 onSelect for range mode: OnSelectHandler<DateRange | undefined>
   // Signature: (selected: DateRange | undefined, triggerDate, modifiers, e) => void

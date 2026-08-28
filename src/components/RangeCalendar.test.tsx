@@ -232,4 +232,75 @@ describe('RangeCalendar', () => {
     // the actual <select> dropdowns are still present
     expect(screen.getAllByRole('combobox').length).toBeGreaterThanOrEqual(2);
   });
+describe('following the selection', () => {
+  // The view was read once at mount and never looked at `value` again, so a
+  // shortcut or a typed date could set a range the user could not see:
+  // navigate to December 2027, press a shortcut, and the grids stayed there.
+  const monthsOnScreen = (container: HTMLElement) =>
+    [...container.querySelectorAll('.drp-month')].map((m) => {
+      const selects = m.querySelectorAll('select');
+      return `${(selects[0] as HTMLSelectElement).value}/${(selects[1] as HTMLSelectElement).value}`;
+    });
+
+  const props = {
+    onChange: vi.fn(),
+    numberOfMonths: 2,
+    defaultMonth: new Date(2027, 11, 1),
+  };
+
+  it('re-anchors a linked calendar onto a selection made off-screen', () => {
+    const { container, rerender } = render(
+      <RangeCalendar {...props} value={[null, null]} linked />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['11/2027', '0/2028']);
+
+    rerender(
+      <RangeCalendar
+        {...props}
+        value={[new Date(2026, 7, 20), new Date(2026, 7, 27)]}
+        linked
+      />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['7/2026', '8/2026']);
+  });
+
+  it('re-anchors every panel when navigation is unlinked', () => {
+    const { container, rerender } = render(
+      <RangeCalendar {...props} value={[null, null]} linked={false} />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['11/2027', '0/2028']);
+
+    rerender(
+      <RangeCalendar
+        {...props}
+        value={[new Date(2026, 7, 20), new Date(2026, 7, 27)]}
+        linked={false}
+      />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['7/2026', '8/2026']);
+  });
+
+  it('leaves the view alone when the selection is already on screen', () => {
+    // Picking a day in a visible month must not yank the calendar around.
+    const { container, rerender } = render(
+      <RangeCalendar {...props} value={[null, null]} linked />,
+    );
+    const before = monthsOnScreen(container);
+
+    rerender(
+      <RangeCalendar {...props} value={[new Date(2028, 0, 9), null]} linked />,
+    );
+    expect(monthsOnScreen(container)).toEqual(before);
+  });
+
+  it('re-anchors on the end date when only the end is set', () => {
+    const { container, rerender } = render(
+      <RangeCalendar {...props} value={[null, null]} linked />,
+    );
+    rerender(
+      <RangeCalendar {...props} value={[null, new Date(2025, 2, 4)]} linked />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['2/2025', '3/2025']);
+  });
+});
 });
