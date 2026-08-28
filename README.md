@@ -156,6 +156,10 @@ Seeds — set these first; everything else follows.
 | `--drp-shortcut-active-bg` | `#eef2ff` |
 | `--drp-shortcut-active-fg` | `#4338ca` |
 | `--drp-months-gap` | `2rem` |
+| `--drp-dropdown-padding-x` | `0.5rem` |
+| `--drp-dropdown-padding-y` | `0.125rem` |
+| `--drp-dropdown-caret-size` | `0.6rem` |
+| `--drp-dropdown-caret` | `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")` |
 | `--drp-nav-button-size` | `1.75rem` |
 | `--drp-day-size` | `2.25rem` |
 | `--drp-day-range-bg` | `#e0e7ff` |
@@ -192,6 +196,7 @@ Part tokens — each defaults to a seed, override one to disagree with a detail.
 | `--drp-caption-fg` | `var(--drp-fg)` |
 | `--drp-weekday-fg` | `var(--drp-muted-fg)` |
 | `--drp-dropdowns-gap` | `var(--drp-gap)` |
+| `--drp-dropdown-caret-inset` | `var(--drp-dropdown-padding-x)` |
 | `--drp-dropdown-bg` | `var(--drp-bg)` |
 | `--drp-dropdown-fg` | `var(--drp-fg)` |
 | `--drp-dropdown-border-color` | `var(--drp-border)` |

@@ -121,6 +121,16 @@
     /* Between the month and year selects. Was a hardcoded 0.25rem, which read
        as one control rather than two. */
     --drp-dropdowns-gap: var(--drp-gap);
+    --drp-dropdown-padding-x: 0.5rem;
+    --drp-dropdown-padding-y: 0.125rem;
+    /* The caret is drawn by this package, not by the browser — see the rule
+       below for why. Its colour follows the caption, so it is themed by
+       --drp-caption-fg like the text beside it. */
+    --drp-dropdown-caret-size: 0.6rem;
+    --drp-dropdown-caret-inset: var(--drp-dropdown-padding-x);
+    /* Used as a mask, so only the shape matters — the fill comes from
+       currentColor. Swap it for a different glyph if you want one. */
+    --drp-dropdown-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     --drp-dropdown-bg: var(--drp-bg);
     --drp-dropdown-fg: var(--drp-fg);
     --drp-dropdown-border-color: var(--drp-border);
@@ -344,13 +354,37 @@
     display: inline-flex;
     align-items: center;
   }
+  /* `appearance: none` because the browser pins a native <select>'s caret to
+     the inline edge of the border box and ignores padding-right entirely —
+     verified at 2rem of padding, where the text moved and the arrow did not.
+     Drawing it here is the only way to inset it, and it makes the caret follow
+     the theme instead of the user agent. */
   .drp-dropdown {
+    appearance: none;
     border: 1px solid var(--drp-dropdown-border-color);
     border-radius: var(--drp-dropdown-radius);
     background: var(--drp-dropdown-bg);
-    padding: 0.125rem 0.25rem;
+    padding: var(--drp-dropdown-padding-y)
+      calc(
+        var(--drp-dropdown-caret-inset) + var(--drp-dropdown-caret-size) +
+          var(--drp-dropdown-padding-x)
+      )
+      var(--drp-dropdown-padding-y) var(--drp-dropdown-padding-x);
     font: inherit;
     color: var(--drp-dropdown-fg);
+  }
+  /* A mask rather than a background image, so the caret takes `currentColor`
+     and needs no second copy for dark mode. */
+  .drp-dropdown-root::after {
+    content: '';
+    position: absolute;
+    right: var(--drp-dropdown-caret-inset);
+    width: var(--drp-dropdown-caret-size);
+    height: var(--drp-dropdown-caret-size);
+    background: currentColor;
+    mask: var(--drp-dropdown-caret) center / contain no-repeat;
+    -webkit-mask: var(--drp-dropdown-caret) center / contain no-repeat;
+    pointer-events: none;
   }
 
   /* navLayout="around" puts the two buttons directly inside the month and
