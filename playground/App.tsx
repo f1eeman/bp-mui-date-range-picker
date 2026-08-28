@@ -4,6 +4,10 @@ import { DateRangeInput, type DateRange } from 'bp-mui-date-range-picker';
 export function App() {
   const [range, setRange] = useState<DateRange>([null, null]);
   const [contiguous, setContiguous] = useState(true);
+  // Callback ref rather than useRef: the container has to be a rendered
+  // element on the render that mounts the popover, and a ref object is
+  // still null then.
+  const [scope, setScope] = useState<HTMLDivElement | null>(null);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-8">
@@ -41,8 +45,21 @@ export function App() {
       />
 
       <h2 className="text-lg font-medium">Theme via CSS variables</h2>
-      <div style={{ '--drp-accent': '#db2777', '--drp-radius': '12px' } as CSSProperties}>
-        <DateRangeInput placeholder={{ start: 'From', end: 'To' }} />
+      {/*
+        Tokens set on a wrapper reach the input group by inheritance, but the
+        popover is portalled to document.body and sits outside that wrapper —
+        so a subtree-scoped retheme has to point `container` back at it.
+        A host that declares its tokens at :root needs none of this.
+      */}
+      <div
+        ref={setScope}
+        style={{ '--drp-accent': '#db2777', '--drp-radius': '12px' } as CSSProperties}
+      >
+        <DateRangeInput
+          placeholder={{ start: 'From', end: 'To' }}
+          container={scope}
+          shortcuts
+        />
       </div>
     </div>
   );

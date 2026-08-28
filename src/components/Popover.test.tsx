@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useState, type CSSProperties } from 'react';
+import { useState } from 'react';
 import { Popover } from './Popover';
 
 function Harness() {
@@ -32,26 +32,38 @@ describe('Popover', () => {
     expect(screen.queryByText('panel content')).not.toBeInTheDocument();
   });
 
-  it('applies a forwarded style to the floating panel', async () => {
-    function StyledHarness() {
+  it('portals the panel into document.body by default', async () => {
+    const { container: mountPoint } = render(<Harness />);
+    await userEvent.click(screen.getByText('open'));
+    const panel = screen.getByText('panel content');
+    expect(mountPoint.contains(panel)).toBe(false);
+    expect(document.body.contains(panel)).toBe(true);
+  });
+
+  it('portals the panel into a given container', async () => {
+    // Tokens reach the panel by inheritance, so a host that scopes its retheme
+    // to a subtree points `container` at that subtree instead of the body.
+    const scope = document.createElement('div');
+    scope.id = 'scope';
+    document.body.appendChild(scope);
+
+    function ScopedHarness() {
       const [open, setOpen] = useState(false);
       return (
         <Popover
           open={open}
           onOpenChange={setOpen}
           trigger={<button>open</button>}
-          style={{ '--drp-accent': 'rgb(1, 2, 3)' } as CSSProperties}
+          container={scope}
         >
           <div>panel content</div>
         </Popover>
       );
     }
-    render(<StyledHarness />);
+    render(<ScopedHarness />);
     await userEvent.click(screen.getByText('open'));
-    // The floating panel is the parent of the rendered children.
-    const panel = screen.getByText('panel content').parentElement as HTMLElement;
-    expect(panel.style.getPropertyValue('--drp-accent')).toBe('rgb(1, 2, 3)');
-    // floating-ui positioning must survive the merge.
-    expect(panel.style.position).toBeTruthy();
+    expect(scope.contains(screen.getByText('panel content'))).toBe(true);
+
+    scope.remove();
   });
 });

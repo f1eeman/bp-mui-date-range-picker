@@ -62,5 +62,15 @@ export interface DateRangeInputProps {
   disabled?: boolean;
   placeholder?: { start?: string; end?: string };
 
+  /**
+   * Node the popover is portalled into. Defaults to `document.body`.
+   *
+   * Theme tokens reach the popover by inheritance, so the default is correct
+   * whenever the host declares `--drp-*` at `:root` or on `<html>`. Point this
+   * at an ancestor carrying the tokens when a retheme is scoped to a subtree
+   * instead.
+   */
+  container?: HTMLElement | null;
+
   classNames?: ClassNames;
 }

@@ -1,11 +1,10 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { DateRange, DateRangeInputProps, Shortcut } from './types';
 import { useDateRangeInput } from './hooks/useDateRangeInput';
 import { useDateParsing } from './hooks/useDateParsing';
 import { isWithinBounds, isSingleDay } from './utils/dateRange';
 import { createDefaultShortcuts } from './utils/shortcuts';
 import { mergeSlot } from './utils/mergeClassNames';
-import { readThemeTokens } from './styles/tokens';
 import { dateMatchModifiers } from 'react-day-picker';
 import { Popover } from './components/Popover';
 import { RangeCalendar } from './components/RangeCalendar';
@@ -19,7 +18,8 @@ function resolveShortcuts(shortcuts: DateRangeInputProps['shortcuts']): Shortcut
   return shortcuts === true ? createDefaultShortcuts() : shortcuts;
 }
 
-/** Blueprint-style date range input with slot-based Tailwind styling. */
+/** Blueprint-style date range input, themed through --drp-* tokens with
+ *  per-slot class overrides as the escape hatch. */
 export function DateRangeInput(props: DateRangeInputProps) {
   const {
     value, defaultValue, onChange,
@@ -28,24 +28,10 @@ export function DateRangeInput(props: DateRangeInputProps) {
     contiguousCalendarMonths = true,
     shortcuts, timePrecision,
     closeOnSelection = false,
-    disabled, placeholder, classNames,
+    disabled, placeholder, classNames, container,
   } = props;
 
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [popoverTokens, setPopoverTokens] = useState<CSSProperties>({});
-
-  // The popover is portalled outside `.drp-root` by FloatingPortal, so it can
-  // not inherit the `--drp-*` theme tokens. Forward the resolved values onto
-  // the panel when it opens. useLayoutEffect runs before paint — no unthemed
-  // flash. Tokens are snapshotted once per open; a theme change while the
-  // popover stays open is not picked up until it reopens (accepted tradeoff).
-  useLayoutEffect(() => {
-    if (open && rootRef.current) {
-      setPopoverTokens(readThemeTokens(rootRef.current));
-    }
-  }, [open]);
-
   const state = useDateRangeInput({ value, defaultValue, onChange });
   const parsing = useDateParsing({ formatDate, parseDate, locale });
   const presets = useMemo(() => resolveShortcuts(shortcuts), [shortcuts]);
@@ -98,13 +84,13 @@ export function DateRangeInput(props: DateRangeInputProps) {
   );
 
   return (
-    <div ref={rootRef} className={mergeSlot('root', classNames)}>
+    <div className={mergeSlot('root', classNames)}>
       <Popover
         open={open}
         onOpenChange={setOpen}
         trigger={inputGroup}
         className={mergeSlot('popover', classNames)}
-        style={popoverTokens}
+        container={container}
         disableClickToggle
       >
         <div className={mergeSlot('panel', classNames)}>
