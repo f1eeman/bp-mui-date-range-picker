@@ -73,13 +73,18 @@ export function App() {
             <option value={3}>3</option>
           </select>
         </label>
+        {/* Named after the state it turns on, not the one it turns off. The
+            prop is `linkedNavigation` and defaults to true, but nobody goes
+            looking for "linked navigation" — they go looking for the month and
+            year dropdowns paging one calendar without dragging its neighbour
+            along, which is what unchecking it does. */}
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
-            checked={linked}
-            onChange={(e) => setLinked(e.target.checked)}
+            checked={!linked}
+            onChange={(e) => setLinked(!e.target.checked)}
           />
-          Linked navigation
+          Page each month independently
         </label>
         <span className="opacity-60">opened {openCount}x</span>
       </div>
