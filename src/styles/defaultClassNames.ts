@@ -42,6 +42,12 @@ export const defaultClassNames: Record<Slot, string> = {
   dayDisabled: 'drp-day-disabled',
   dayOutside: 'drp-day-outside',
   dayFocused: 'drp-day-focused',
+  timePickers: 'drp-time-pickers',
   timePicker: 'drp-time-picker',
+  timePickerInputRow: 'drp-time-picker-input-row',
+  timePickerSeparator: 'drp-time-picker-separator',
   timePickerInput: 'drp-time-picker-input',
+  timePickerArrowRow: 'drp-time-picker-arrow-row',
+  timePickerArrowButton: 'drp-time-picker-arrow-button',
+  timePickerArrowSpacer: 'drp-time-picker-arrow-spacer',
 };

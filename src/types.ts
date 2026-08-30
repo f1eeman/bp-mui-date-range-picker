@@ -5,6 +5,12 @@ import type { Matcher } from 'react-day-picker';
 /** A range as a tuple. Either or both ends may be null (unset). */
 export type DateRange = [Date | null, Date | null];
 
+/**
+ * How fine the time fields go. Absent means the picker is date-only: no time
+ * fields, and the text pattern carries no clock.
+ */
+export type TimePrecision = 'minute' | 'second';
+
 /** Which end of the range an interaction targets. */
 export type Boundary = 'start' | 'end';
 
@@ -33,7 +39,9 @@ export type Slot =
   | 'dayCell' | 'day'
   | 'daySelected' | 'dayRangeStart' | 'dayRangeEnd' | 'dayRangeMiddle'
   | 'dayToday' | 'dayDisabled' | 'dayOutside' | 'dayFocused'
-  | 'timePicker' | 'timePickerInput';
+  | 'timePickers' | 'timePicker' | 'timePickerInputRow'
+  | 'timePickerSeparator' | 'timePickerInput'
+  | 'timePickerArrowRow' | 'timePickerArrowButton' | 'timePickerArrowSpacer';
 
 /** Slot -> Tailwind class string overrides. */
 export type ClassNames = Partial<Record<Slot, string>>;
@@ -85,7 +93,13 @@ export interface DateRangeInputProps
    */
   linkedNavigation?: boolean;
   shortcuts?: boolean | Shortcut[];
-  timePrecision?: 'minute' | 'second';
+  timePrecision?: TimePrecision;
+  /**
+   * When true, each time field gets a step button above and below it. Defaults
+   * to false — the fields are typeable and take the arrow keys either way.
+   * Only meaningful alongside `timePrecision`.
+   */
+  showArrowButtons?: boolean;
   /**
    * When true, the popover closes once a complete range (two different days)
    * is selected via the calendar or a shortcut. Defaults to false — the

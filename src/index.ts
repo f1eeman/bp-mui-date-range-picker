@@ -9,6 +9,7 @@ export { defaultClassNames } from './styles/defaultClassNames';
 export type {
   DateRange,
   Boundary,
+  TimePrecision,
   Shortcut,
   Slot,
   ClassNames,

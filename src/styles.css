@@ -163,6 +163,10 @@
     --drp-time-input-radius: var(--drp-input-radius);
     --drp-time-input-width: 3rem;
     --drp-time-input-height: 2rem;
+    --drp-time-divider-width: 0.75rem;
+    --drp-time-arrow-height: 1.25rem;
+    --drp-time-arrow-color: var(--drp-muted-fg);
+    --drp-time-arrow-hover-color: var(--drp-fg);
   }
 
   /* The root sets the whole type context, not just the family. Without the
@@ -537,20 +541,95 @@
 
   .drp-time-picker {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
     border-top: 1px solid var(--drp-popover-border-color);
     padding: 0.5rem;
   }
-  .drp-time-picker-input {
+
+  /* One border around the whole clock rather than one per field, so hh:mm(:ss)
+     reads as a single control the way a time reads as a single value. The
+     fields inside are borderless and the separators sit on the same ground. */
+  .drp-time-picker-input-row {
+    display: flex;
+    align-items: center;
     box-sizing: border-box;
-    width: var(--drp-time-input-width);
     height: var(--drp-time-input-height);
     border: 1px solid var(--drp-time-input-border-color);
     border-radius: var(--drp-time-input-radius);
     background: var(--drp-time-input-bg);
+    color: var(--drp-time-input-fg);
+  }
+
+  .drp-time-picker-separator {
+    box-sizing: border-box;
+    width: var(--drp-time-divider-width);
+    text-align: center;
+  }
+
+  .drp-time-picker-input {
+    box-sizing: border-box;
+    width: var(--drp-time-input-width);
+    height: 100%;
+    border: 0;
+    border-radius: inherit;
+    background: transparent;
     font: inherit;
     text-align: center;
-    color: var(--drp-time-input-fg);
+    color: inherit;
+  }
+  /* The spinner the browser draws on a number input would sit inside the box
+     beside the digits and fight the arrow rows for the same job. */
+  .drp-time-picker-input::-webkit-inner-spin-button,
+  .drp-time-picker-input::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+  .drp-time-picker-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  .drp-time-picker-input:focus-visible {
+    outline: var(--drp-focus-ring-width) solid var(--drp-focus-ring);
+    outline-offset: calc(-1 * var(--drp-focus-ring-width));
+    border-radius: inherit;
+  }
+
+  /* The arrow rows mirror the input row column for column — a button where a
+     field is, an empty spacer where a separator is — so each arrow sits over
+     the field it drives without either row knowing the other's widths. */
+  .drp-time-picker-arrow-row {
+    display: flex;
+    align-items: center;
+  }
+  .drp-time-picker-arrow-spacer {
+    box-sizing: border-box;
+    width: var(--drp-time-divider-width);
+  }
+  .drp-time-picker-arrow-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--drp-time-input-width);
+    height: var(--drp-time-arrow-height);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--drp-time-arrow-color);
+    cursor: pointer;
+  }
+  .drp-time-picker-arrow-button:hover:not(:disabled) {
+    color: var(--drp-time-arrow-hover-color);
+  }
+
+  .drp-time-picker-input:disabled,
+  .drp-time-picker-arrow-button:disabled {
+    color: var(--drp-disabled-fg);
+    cursor: default;
+  }
+  .drp-time-picker-input-row:has(.drp-time-picker-input:disabled) {
+    background: var(--drp-input-disabled-bg);
+    color: var(--drp-disabled-fg);
   }
 }

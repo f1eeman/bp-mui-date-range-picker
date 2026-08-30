@@ -99,3 +99,108 @@ describe('DateInputField', () => {
     expect(onCommit).toHaveBeenLastCalledWith(null);
   });
 });
+
+function HarnessWithTime({
+  onCommit,
+  applyMissingTime,
+}: {
+  onCommit: (d: Date | null) => void;
+  applyMissingTime?: (d: Date) => Date;
+}) {
+  const parsing = useDateParsing({ timePrecision: 'minute' });
+  return (
+    <DateInputField
+      value={null}
+      parsing={parsing}
+      onCommit={onCommit}
+      onFocus={() => {}}
+      placeholder="start"
+      applyMissingTime={applyMissingTime}
+    />
+  );
+}
+
+describe('DateInputField with a time precision', () => {
+  it('commits the clock the text spelled out', async () => {
+    const onCommit = vi.fn();
+    render(
+      <HarnessWithTime
+        onCommit={onCommit}
+        applyMissingTime={() => new Date(2000, 0, 1)}
+      />,
+    );
+    const input = screen.getByPlaceholderText('start');
+    await userEvent.type(input, '2026-05-20 14:30');
+    await userEvent.tab();
+    expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20, 14, 30));
+  });
+
+  it('fills the clock in from applyMissingTime when the text had only a date', async () => {
+    // Typing a bare date is a way to move the day, not a way to reset the time
+    // the user already dialled in on the time picker.
+    const onCommit = vi.fn();
+    const applyMissingTime = (d: Date) =>
+      new Date(d.getFullYear(), d.getMonth(), d.getDate(), 9, 15);
+    render(<HarnessWithTime onCommit={onCommit} applyMissingTime={applyMissingTime} />);
+    const input = screen.getByPlaceholderText('start');
+    await userEvent.type(input, '2026-05-20');
+    await userEvent.tab();
+    expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20, 9, 15));
+  });
+
+  it('leaves a bare date at midnight when no applyMissingTime is given', async () => {
+    const onCommit = vi.fn();
+    render(<HarnessWithTime onCommit={onCommit} />);
+    const input = screen.getByPlaceholderText('start');
+    await userEvent.type(input, '2026-05-20');
+    await userEvent.tab();
+    expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20));
+  });
+
+  it('validates the date it will actually commit, not the one before the clock', async () => {
+    // applyMissingTime can push a value past maxDate — 23:59:59 on the last
+    // allowed day is the case that bites — so the gate has to see the final one.
+    const onCommit = vi.fn();
+    const seen: Date[] = [];
+    const parsingHarness = (
+      <HarnessWithTimeValidate
+        onCommit={onCommit}
+        seen={seen}
+        applyMissingTime={(d) =>
+          new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59)
+        }
+      />
+    );
+    render(parsingHarness);
+    const input = screen.getByPlaceholderText('start');
+    await userEvent.type(input, '2026-05-20');
+    await userEvent.tab();
+    expect(seen).toEqual([new Date(2026, 4, 20, 23, 59)]);
+  });
+});
+
+function HarnessWithTimeValidate({
+  onCommit,
+  seen,
+  applyMissingTime,
+}: {
+  onCommit: (d: Date | null) => void;
+  seen: Date[];
+  applyMissingTime: (d: Date) => Date;
+}) {
+  const parsing = useDateParsing({ timePrecision: 'minute' });
+  return (
+    <DateInputField
+      value={null}
+      parsing={parsing}
+      onCommit={onCommit}
+      onFocus={() => {}}
+      placeholder="start"
+      applyMissingTime={applyMissingTime}
+      validate={(d) => {
+        seen.push(d);
+        return true;
+      }}
+    />
+  );
+}

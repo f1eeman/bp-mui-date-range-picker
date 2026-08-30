@@ -166,6 +166,8 @@ Seeds — set these first; everything else follows.
 | `--drp-day-range-fg` | `#312e81` |
 | `--drp-time-input-width` | `3rem` |
 | `--drp-time-input-height` | `2rem` |
+| `--drp-time-divider-width` | `0.75rem` |
+| `--drp-time-arrow-height` | `1.25rem` |
 
 Part tokens — each defaults to a seed, override one to disagree with a detail.
 
@@ -215,6 +217,8 @@ Part tokens — each defaults to a seed, override one to disagree with a detail.
 | `--drp-time-input-fg` | `var(--drp-input-fg)` |
 | `--drp-time-input-border-color` | `var(--drp-input-border-color)` |
 | `--drp-time-input-radius` | `var(--drp-input-radius)` |
+| `--drp-time-arrow-color` | `var(--drp-muted-fg)` |
+| `--drp-time-arrow-hover-color` | `var(--drp-fg)` |
 
 <!-- tokens:end -->
 
@@ -290,6 +294,55 @@ import { ru } from 'date-fns/locale/ru';
 start on Sunday by default, and a calendar rendered with `ru` starts them on
 Monday, so without it the shortcut disagrees with the grid beside it.
 
+### Time
+
+`timePrecision` puts an hours/minutes editor under the calendar — one per
+boundary — and widens the text pattern to match:
+
+| `timePrecision` | pattern |
+| --- | --- |
+| — | `2026-05-20` |
+| `'minute'` | `2026-05-20 09:05` |
+| `'second'` | `2026-05-20 09:05:30` |
+
+A day and its clock are edited independently. Picking a day in the calendar, or
+retyping just the date part of a field, keeps the time that boundary already
+had. A boundary getting its **first** date opens the day for `start`
+(`00:00:00.000`) and closes it for `end` (`23:59:59.999`), so two clicks give
+you the whole span rather than a zero-length one at midnight.
+
+The clock can be set before the day. A boundary with no date yet still shows
+the clock it would open with, and dialling it picks the day too:
+
+| what is already picked | the day the clock lands on |
+| --- | --- |
+| nothing | today |
+| the other end | the day beside it — a start before its end, an end after its start |
+| the other end, under `allowSingleDayRange` | that same day |
+
+`showArrowButtons` puts a step button above and below each field. Off by
+default; the fields take <kbd>↑</kbd>/<kbd>↓</kbd> either way, and stepping
+wraps round the unit rather than sticking at its ends (23 steps up to 00).
+
+A typed field commits when it is left or on <kbd>Enter</kbd>, not on every
+keystroke — otherwise typing `14` would publish the hour `1` on the way there.
+
+The field is forgiving about an under-specified clock. At `'second'` precision
+both of these are accepted:
+
+```
+2026-05-20 14:30   ->  14:30:00
+2026-05-20         ->  this day, at the time this boundary already had
+```
+
+Shortcuts set their own times — "today" means the whole of today, not today at
+whatever hour you last dialled in. A boundary with no date yet shows its time
+fields disabled: there is no clock to edit until a day exists, and editing one
+would have to invent the day too.
+
+`formatDate` / `parseDate` still override the pattern completely, and a
+`parseDate` of your own owns the time in whatever it returns.
+
 ### Props
 
 Beyond the ones below, `DateRangeInputProps` extends the root `<div>`'s props,
@@ -305,7 +358,8 @@ so `className`, `style`, `id`, `ref`, `data-*` and `aria-*` all land on it.
 | `shortcuts` | `false` | `true` for the built-in presets, or your own list |
 | `closeOnSelection` | `false` | close once a complete range is picked |
 | `allowSingleDayRange` | `false` | treat a single day as a complete range |
-| `timePrecision` | — | `'minute'` or `'second'` to add time fields |
+| `timePrecision` | — | `'minute'` or `'second'` to add time fields, and widen the text pattern |
+| `showArrowButtons` | `false` | a step button above and below each time field |
 | `minDate` / `maxDate` / `disabledDays` | — | bounds and exclusions |
 | `locale` / `formatDate` / `parseDate` | — | date-fns locale and custom formatting |
 | `container` | `document.body` | node the popover portals into |

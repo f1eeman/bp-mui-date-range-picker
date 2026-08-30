@@ -1,5 +1,9 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { DateRangeInput, type DateRange } from 'bp-mui-date-range-picker';
+import {
+  DateRangeInput,
+  type DateRange,
+  type TimePrecision,
+} from 'bp-mui-date-range-picker';
 
 type Skin = 'default' | 'merged' | 'material';
 
@@ -22,6 +26,9 @@ export function App() {
   // element on the render that mounts the popover, and a ref object is
   // still null then.
   const [scope, setScope] = useState<HTMLDivElement | null>(null);
+  const [timed, setTimed] = useState<DateRange>([null, null]);
+  const [precision, setPrecision] = useState<TimePrecision>('minute');
+  const [showArrowButtons, setShowArrowButtons] = useState(true);
 
   // On <html>, so the portalled popover inherits the tokens the same way it
   // would in a host that declares them at :root. Nothing is forwarded to it.
@@ -108,6 +115,43 @@ export function App() {
 
       <pre className="rounded bg-zinc-100 p-3 text-sm">
         {JSON.stringify(range.map((d) => d?.toISOString() ?? null), null, 2)}
+      </pre>
+
+      <h2 className="text-lg font-medium">Time</h2>
+      {/*
+        The acceptance check for the feature is here rather than in a test: set
+        a time, then move the day in the calendar and retype the date by hand.
+        The clock has to survive both.
+      */}
+      <label className="flex items-center gap-2 text-sm">
+        Precision
+        <select
+          className="rounded border px-2 py-1"
+          value={precision}
+          onChange={(e) => setPrecision(e.target.value as TimePrecision)}
+        >
+          <option value="minute">minute</option>
+          <option value="second">second</option>
+        </select>
+      </label>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={showArrowButtons}
+          onChange={(e) => setShowArrowButtons(e.target.checked)}
+        />
+        Arrow buttons
+      </label>
+      <DateRangeInput
+        value={timed}
+        onChange={setTimed}
+        timePrecision={precision}
+        showArrowButtons={showArrowButtons}
+        shortcuts
+        placeholder={{ start: 'Start', end: 'End' }}
+      />
+      <pre className="rounded bg-zinc-100 p-3 text-sm">
+        {JSON.stringify(timed.map((d) => d?.toISOString() ?? null), null, 2)}
       </pre>
 
       <h2 className="text-lg font-medium">Slot overrides</h2>

@@ -12,6 +12,12 @@ export interface DateInputFieldProps {
   disabled?: boolean;
   /** Optional gate: a parsed date for which this returns false is treated as invalid and not committed. */
   validate?: (date: Date) => boolean;
+  /**
+   * Supplies the clock for a value the user typed as a bare date, under a
+   * `timePrecision` whose pattern has one. Without it, moving the day by hand
+   * would silently reset a time set on the time picker back to midnight.
+   */
+  applyMissingTime?: (date: Date) => Date;
   /** Extra slot applied alongside `input`: 'inputStart' or 'inputEnd'. */
   sideSlot?: Extract<Slot, 'inputStart' | 'inputEnd'>;
   classNames?: ClassNames;
@@ -20,7 +26,7 @@ export interface DateInputFieldProps {
 /** A single text field that parses its value into a Date on blur / Enter. */
 export function DateInputField({
   value, parsing, onCommit, onFocus,
-  placeholder, disabled, validate, sideSlot, classNames,
+  placeholder, disabled, validate, applyMissingTime, sideSlot, classNames,
 }: DateInputFieldProps) {
   const [text, setText] = useState<string>(parsing.format(value));
   const [invalid, setInvalid] = useState(false);
@@ -45,11 +51,16 @@ export function DateInputField({
     }
     const parsed = parsing.parse(text);
     if (parsed) {
-      if (validate && !validate(parsed)) {
+      // Settle the clock before validating: applyMissingTime can push a value
+      // across maxDate — 23:59 on the last allowed day is the case that bites —
+      // so the gate has to see the date that will actually be committed.
+      const date =
+        parsed.hasTime || !applyMissingTime ? parsed.date : applyMissingTime(parsed.date);
+      if (validate && !validate(date)) {
         setInvalid(true);
       } else {
         setInvalid(false);
-        onCommit(parsed);
+        onCommit(date);
       }
     } else {
       setInvalid(true);
