@@ -29,7 +29,7 @@ export interface Shortcut {
  */
 export type Slot =
   | 'root' | 'inputGroup' | 'inputRoot' | 'input' | 'inputStart' | 'inputEnd'
-  | 'inputInvalid' | 'inputLabel' | 'inputLabelFloating' | 'separator'
+  | 'inputInvalid' | 'inputGroupInvalid' | 'inputLabel' | 'inputLabelFloating' | 'separator'
   | 'popover' | 'panel'
   | 'shortcutsPanel' | 'shortcut' | 'shortcutActive'
   | 'calendar' | 'months' | 'month' | 'caption'
@@ -61,7 +61,16 @@ export interface DateRangeInputProps
   > {
   value?: DateRange;
   defaultValue?: DateRange;
-  onChange?: (range: DateRange) => void;
+  /**
+   * `changed` names which end moved: `'start'`, `'end'`, or `'both'` for a
+   * shortcut or a calendar click that settled the pair at once.
+   *
+   * Hosts keep a range as two fields, because that is the shape of their
+   * schemas and their DTOs. Without this they have to write both on every
+   * change, which in react-hook-form marks both dirty, wakes both `useWatch`
+   * subscriptions and validates the field the user never touched.
+   */
+  onChange?: (range: DateRange, changed: Boundary | 'both') => void;
 
   formatDate?: (date: Date, locale?: Locale) => string;
   parseDate?: (str: string, locale?: Locale) => Date | null;
@@ -83,10 +92,12 @@ export interface DateRangeInputProps
   maxDate?: Date;
   disabledDays?: Matcher | Matcher[];
   /**
-   * When true, a single-day selection (start === end) counts as a complete
-   * range and auto-closes the popover. When false (default), the popover stays
-   * open until a two-day range is picked. Single-day ranges are always valid
-   * values regardless of this flag.
+   * When true, a boundary filled on its own defaults the other end to the same
+   * day, so dialling one clock gives a range within a single day. When false
+   * (default), the other end is left for the user to pick.
+   *
+   * It does not decide when the popover closes — see `closeOnSelection`.
+   * Single-day ranges are valid values either way.
    */
   allowSingleDayRange?: boolean;
 
@@ -107,15 +118,22 @@ export interface DateRangeInputProps
   shortcuts?: boolean | Shortcut[];
   timePrecision?: TimePrecision;
   /**
-   * When true, each time field gets a step button above and below it. Defaults
-   * to false — the fields are typeable and take the arrow keys either way.
-   * Only meaningful alongside `timePrecision`.
+   * Step buttons above and below each time field. Defaults to true: without
+   * them the field looks like plain text and says nothing about being stepped.
+   * The fields are typeable and take the arrow keys either way, so `false` is
+   * a reasonable choice for a dense layout. Only meaningful alongside
+   * `timePrecision`.
    */
   showArrowButtons?: boolean;
   /**
-   * When true, the popover closes once a complete range (two different days)
-   * is selected via the calendar or a shortcut. Defaults to false — the
-   * popover stays open until dismissed (Escape or click outside).
+   * When true, the popover closes once two different days are selected, via
+   * the calendar or a shortcut. Defaults to false — the popover stays open
+   * until dismissed (Escape or click outside).
+   *
+   * A single-day range never closes it, whatever `allowSingleDayRange` says:
+   * the first click on a calendar already produces `{ from: A, to: A }`, so
+   * treating that as finished would end the interaction before the second date
+   * could be picked.
    */
   closeOnSelection?: boolean;
 
@@ -131,6 +149,23 @@ export interface DateRangeInputProps
   onOpenChange?: (open: boolean) => void;
 
   disabled?: boolean;
+  /**
+   * Shows the value but refuses edits: the fields are read-only and focusing
+   * one does not open the popover. Unlike `disabled` the value keeps its normal
+   * colour and stays in the tab order, so it can still be read and copied —
+   * which is the whole point of a range the user may look at but not change.
+   */
+  readOnly?: boolean;
+  /**
+   * Marks the value invalid on the host's authority. The package already flags
+   * text it cannot parse; this covers the rules only the form knows — required,
+   * no wider than 90 days, not overlapping an existing booking.
+   *
+   * Both fields get the `inputInvalid` slot and `aria-invalid`, and the group
+   * gets `inputGroupInvalid` — a host that drew one outline around both dates
+   * needs the state on the element carrying that outline.
+   */
+  invalid?: boolean;
   placeholder?: { start?: string; end?: string };
   /**
    * Caption for each field. Each one rests over its field like a placeholder

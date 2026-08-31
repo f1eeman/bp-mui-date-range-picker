@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { ru } from 'date-fns/locale/ru';
 import { RangeCalendar } from './RangeCalendar';
 
 describe('RangeCalendar', () => {
@@ -15,6 +16,29 @@ describe('RangeCalendar', () => {
       />,
     );
     expect(container.querySelectorAll('.drp-calendar')).toHaveLength(1);
+  });
+
+  it('capitalises the month names in the dropdown', () => {
+    // date-fns hands back the form a month takes inside a sentence, which for
+    // Russian is lower case: `август`. In a control it is a heading and reads
+    // as a typo. The locale cannot decide this — the same locale is right for
+    // both — so the capital is the package's call, and a host has no way to
+    // reach the <option> text to fix it.
+    const { container } = render(
+      <RangeCalendar
+        value={[null, null]}
+        onChange={vi.fn()}
+        numberOfMonths={1}
+        linked
+        locale={ru}
+        defaultMonth={new Date(2026, 7, 1)}
+      />,
+    );
+    const months = [...container.querySelectorAll('.drp-month-dropdown option')].map(
+      (o) => o.textContent,
+    );
+    expect(months).toContain('Август');
+    expect(months.every((m) => m![0] === m![0].toUpperCase())).toBe(true);
   });
 
   it('renders two grids when non-contiguous', () => {

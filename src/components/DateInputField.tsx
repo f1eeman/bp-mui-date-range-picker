@@ -16,6 +16,14 @@ export interface DateInputFieldProps {
    */
   label?: string;
   disabled?: boolean;
+  /** Value is shown but not editable. */
+  readOnly?: boolean;
+  /**
+   * Invalid by the host's own rules — required, too wide, overlapping
+   * something the package cannot see. Sits alongside the field's own parse
+   * check; either one marks the field.
+   */
+  invalid?: boolean;
   /** Optional gate: a parsed date for which this returns false is treated as invalid and not committed. */
   validate?: (date: Date) => boolean;
   /**
@@ -32,10 +40,11 @@ export interface DateInputFieldProps {
 /** A single text field that parses its value into a Date on blur / Enter. */
 export function DateInputField({
   value, parsing, onCommit, onFocus,
-  placeholder, label, disabled, validate, applyMissingTime, sideSlot, classNames,
+  placeholder, label, disabled, readOnly, invalid: invalidProp, validate, applyMissingTime, sideSlot, classNames,
 }: DateInputFieldProps) {
   const [text, setText] = useState<string>(parsing.format(value));
-  const [invalid, setInvalid] = useState(false);
+  const [unparseable, setUnparseable] = useState(false);
+  const invalid = unparseable || Boolean(invalidProp);
 
   // Tracks focus so an external `value` change does not overwrite text the
   // user is currently typing.
@@ -58,12 +67,12 @@ export function DateInputField({
   useEffect(() => {
     if (focused.current) return;
     setText(parsing.format(value));
-    setInvalid(false);
+    setUnparseable(false);
   }, [value, parsing]);
 
   const commit = () => {
     if (!text.trim()) {
-      setInvalid(false);
+      setUnparseable(false);
       onCommit(null);
       return;
     }
@@ -75,13 +84,13 @@ export function DateInputField({
       const date =
         parsed.hasTime || !applyMissingTime ? parsed.date : applyMissingTime(parsed.date);
       if (validate && !validate(date)) {
-        setInvalid(true);
+        setUnparseable(true);
       } else {
-        setInvalid(false);
+        setUnparseable(false);
         onCommit(date);
       }
     } else {
-      setInvalid(true);
+      setUnparseable(true);
     }
   };
 
@@ -113,11 +122,20 @@ export function DateInputField({
       <input
         id={inputId}
         type="text"
+        // A date field must never offer the browser's saved-input list: it
+        // drops over the calendar this same field has just opened. Not a prop,
+        // because there is no case where a host wants it — and no way for one
+        // to reach the element anyway.
+        autoComplete="off"
+        autoCorrect="off"
+        autoCapitalize="off"
+        spellCheck={false}
         value={text}
         // A resting label already sits where the placeholder would print, so
         // the placeholder waits until the label has floated out of its way.
         placeholder={label === undefined || floating ? placeholder : undefined}
         disabled={disabled}
+        readOnly={readOnly}
         aria-invalid={invalid}
         className={className}
         onChange={(e) => setText(e.target.value)}

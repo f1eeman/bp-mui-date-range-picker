@@ -57,11 +57,33 @@ describe('styles.css', () => {
     // The two-level scheme only works if part tokens reference seeds: a host
     // that sets --drp-radius must move the input, day and popover corners with
     // one declaration.
-    expect(css).toMatch(/--drp-input-radius:\s*var\(--drp-radius\)/);
-    expect(css).toMatch(/--drp-day-radius:\s*var\(--drp-radius\)/);
-    expect(css).toMatch(/--drp-popover-radius:\s*var\(--drp-radius\)/);
-    expect(css).toMatch(/--drp-input-border-focus:\s*var\(--drp-accent\)/);
-    expect(css).toMatch(/--drp-day-selected-bg:\s*var\(--drp-accent\)/);
+    //
+    // The default lives in the fallback of every read rather than in a `:root`
+    // declaration — see docs/adr/0004. Substituting a custom property happens
+    // where it is declared, so a part token declared on `:root` resolved its
+    // seed there too, and a host overriding that seed further down the tree
+    // never reached it.
+    expect(css).toMatch(/var\(--drp-input-radius,\s*var\(--drp-radius\)\)/);
+    expect(css).toMatch(/var\(--drp-day-radius,\s*var\(--drp-radius\)\)/);
+    expect(css).toMatch(/var\(--drp-popover-radius,\s*var\(--drp-radius\)\)/);
+    expect(css).toMatch(/var\(--drp-input-border-focus,\s*var\(--drp-accent\)\)/);
+    expect(css).toMatch(/var\(--drp-day-selected-bg,\s*var\(--drp-accent\)\)/);
+  });
+
+  it('separates the focus indicators of field, day and clock', () => {
+    // One --drp-focus-ring-width drove all three. A host copying Material UI —
+    // where an outlined field in focus only changes border colour — zeroed the
+    // seed and silently lost the keyboard focus outline in the calendar and in
+    // the time fields, with nothing to turn it back on.
+    expect(css).toMatch(
+      /\.drp-input:focus \{[^}]*box-shadow:[^;]*var\(--drp-input-focus-ring-width,\s*var\(--drp-focus-ring-width\)\)/,
+    );
+    expect(css).toMatch(
+      /\.drp-day-focused \{[^}]*outline:\s*var\(--drp-day-focus-ring-width,\s*var\(--drp-focus-ring-width\)\)/,
+    );
+    expect(css).toMatch(
+      /\.drp-time-picker-input:focus-visible \{[^}]*outline:\s*var\(--drp-time-focus-ring-width,\s*var\(--drp-focus-ring-width\)\)/,
+    );
   });
 
   it('exposes the popover stacking order as a token', () => {
@@ -87,17 +109,34 @@ describe('styles.css', () => {
     // .drp-day must use color:inherit so a state color set on the parent <td>
     // (default or consumer override) reaches the button text.
     expect(css).toMatch(/\.drp-day \{[^}]*color:\s*inherit/);
-    // disabled needs a button-targeted rule — text-decoration/cursor do not
-    // cross the <button> boundary.
+    // disabled needs a button-targeted rule — `cursor` does not cross the
+    // <button> boundary.
     expect(css).toContain('.drp-day-disabled .drp-day');
-    // disabled strike-through must land on the button element
-    expect(css).toContain('text-decoration: line-through');
     // .drp-calendar carries the default text color the button inherits. It
     // follows the popover surface it sits on rather than --drp-fg directly,
     // so a host that darkens only the popover keeps readable days;
     // --drp-popover-fg defaults to --drp-fg, so the default is unchanged.
-    expect(css).toMatch(/\.drp-calendar \{[^}]*color:\s*var\(--drp-popover-fg\)/);
-    expect(css).toMatch(/--drp-popover-fg:\s*var\(--drp-fg\)/);
+    expect(css).toMatch(/\.drp-calendar \{[^}]*color:\s*var\(--drp-popover-fg,/);
+    expect(css).toMatch(/var\(--drp-popover-fg,\s*var\(--drp-fg\)\)/);
+  });
+
+  it('marks an unavailable day by colour alone, not a strike-through', () => {
+    // A struck-out date reads as cancelled or deleted, not unavailable. With
+    // `minDate = today` the whole of the past month arrived looking like a list
+    // of crossed-off errands. The calendar idiom is a dimmed day, and
+    // --drp-day-disabled-fg already provides it.
+    expect(css).not.toContain('line-through');
+  });
+
+  it('keeps hover off a day whose cell is already filled', () => {
+    // The fill sits on the cell and the button stays transparent — that is what
+    // keeps a range contiguous across the gaps between cells. An unconditional
+    // `.drp-day:hover` background broke exactly that invariant: it painted an
+    // opaque colour over the cell's fill while the text kept --drp-accent-fg,
+    // so the ends of a range went white-on-almost-white. Visible the instant a
+    // day is clicked, since the pointer is still on it.
+    expect(css).not.toContain('  .drp-day:hover {');
+    expect(css).toMatch(/\.drp-day-cell:not\(\.drp-day-selected\) \.drp-day:hover \{/);
   });
 
   it("lets a selection fill own the day number's colour, even on today", () => {

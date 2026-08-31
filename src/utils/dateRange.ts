@@ -1,11 +1,26 @@
 import { isAfter, isBefore, isSameDay, startOfDay } from 'date-fns';
-import type { Boundary, DateRange } from '../types';
+import type { Boundary, DateRange, TimePrecision } from '../types';
 
-/** True when `date` is inside [minDate, maxDate]; bounds are day-inclusive. */
-export function isWithinBounds(date: Date, minDate?: Date, maxDate?: Date): boolean {
-  const day = startOfDay(date);
-  if (minDate && isBefore(day, startOfDay(minDate))) return false;
-  if (maxDate && isAfter(day, startOfDay(maxDate))) return false;
+/**
+ * True when `date` is inside [minDate, maxDate].
+ *
+ * Without a `timePrecision` the bounds are day-inclusive: the UI offers no way
+ * to satisfy a bound part-way through a day, so refusing the day would refuse
+ * every value the user can produce.
+ *
+ * With one, the clock counts. `minDate` and `maxDate` are typed `Date`, and a
+ * host that shows a clock means the moment it passed — "not before now" has to
+ * refuse midnight of today, not accept it as seventeen hours early.
+ */
+export function isWithinBounds(
+  date: Date,
+  minDate?: Date,
+  maxDate?: Date,
+  timePrecision?: TimePrecision,
+): boolean {
+  const at = (d: Date) => (timePrecision ? d : startOfDay(d));
+  if (minDate && isBefore(at(date), at(minDate))) return false;
+  if (maxDate && isAfter(at(date), at(maxDate))) return false;
   return true;
 }
 

@@ -10,6 +10,7 @@ export const defaultClassNames: Record<Slot, string> = {
   inputStart: 'drp-input-start',
   inputEnd: 'drp-input-end',
   inputInvalid: 'drp-input-invalid',
+  inputGroupInvalid: 'drp-input-group-invalid',
   inputLabel: 'drp-input-label',
   inputLabelFloating: 'drp-input-label-floating',
   separator: 'drp-separator',

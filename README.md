@@ -46,6 +46,39 @@ name takes its position the first time the browser sees it.
 Apps with no layers at all need no change — everything they write is unlayered
 and already outranks the package.
 
+### If you use Tailwind, you have layers whether you declared them or not
+
+Tailwind 3 emits preflight unlayered, and unlayered beats every layered rule.
+So `*, ::before, ::after { border-width: 0 }` and
+`button, input, … { padding: 0 }` outrank `bp-drp`, and the fields arrive with
+no border and no inner padding. The tokens still apply, which makes it read
+like a theming problem rather than a cascade one: `--drp-input-border-width`
+computes to `1px` while the border computes to `0px`.
+
+Put preflight in a named layer and order `bp-drp` after it:
+
+```css
+/* index.html <head>, before any stylesheet */
+<style>@layer tw-preflight, bp-drp;</style>
+```
+
+```css
+/* your CSS entry */
+@layer tw-preflight {
+  @tailwind base;
+}
+@tailwind components;   /* leave these unlayered so utilities still win */
+@tailwind utilities;
+```
+
+The order declaration belongs in the document head, not in your CSS entry: a
+layer takes its position the first time the browser sees the name, and this
+package's `styles.css` is usually imported from a component — which is earlier
+than your own CSS gets a chance to speak.
+
+Tailwind 4 users already name layers, so the one-liner at the top of this
+section is enough.
+
 ## Theming
 
 Set `--drp-*` custom properties anywhere above the component. `:root` or
@@ -71,7 +104,14 @@ restating the rest:
 }
 ```
 
-Substitution is lazy, so this works scoped to a subtree as well as globally.
+This works at any depth, not only at `:root` — on a wrapper, or in `style` on
+the component itself. Seeds are declared on `:root`; part tokens are not
+declared at all, and carry their default in the fallback of every read
+(`var(--drp-input-radius, var(--drp-radius))`). That is what defers the whole
+chain to the element reading it, so overriding a seed on a subtree moves the
+part tokens that follow it. Before 4.0.0 part tokens were declared on `:root`
+alongside the seeds, which resolved them there and made a scoped override of a
+seed a no-op for anything downstream of it — see `docs/adr/0004`.
 
 ### Scoping a theme to part of the page
 
@@ -176,45 +216,47 @@ Part tokens — each defaults to a seed, override one to disagree with a detail.
 | Token | Default |
 | --- | --- |
 | `--drp-input-group-gap` | `var(--drp-gap)` |
+| `--drp-input-group-radius` | `var(--drp-radius)` |
 | `--drp-input-group-border-hover` | `var(--drp-input-group-border-color)` |
+| `--drp-input-group-border-invalid` | `var(--drp-invalid-border)` |
 | `--drp-input-group-border-focus` | `var(--drp-input-group-border-color)` |
 | `--drp-input-group-border-width-focus` | `var(--drp-input-group-border-width)` |
-| `--drp-input-group-radius` | `var(--drp-radius)` |
+| `--drp-input-border-color` | `var(--drp-border)` |
+| `--drp-input-radius` | `var(--drp-radius)` |
 | `--drp-input-bg` | `var(--drp-bg)` |
 | `--drp-input-fg` | `var(--drp-fg)` |
 | `--drp-input-placeholder-fg` | `var(--drp-muted-fg)` |
-| `--drp-input-border-color` | `var(--drp-border)` |
 | `--drp-input-border-hover` | `var(--drp-input-border-color)` |
 | `--drp-input-border-focus` | `var(--drp-accent)` |
 | `--drp-input-border-width-focus` | `var(--drp-input-border-width)` |
-| `--drp-input-radius` | `var(--drp-radius)` |
+| `--drp-input-focus-ring-width` | `var(--drp-focus-ring-width)` |
 | `--drp-input-disabled-bg` | `var(--drp-input-bg)` |
-| `--drp-input-label-bg` | `var(--drp-input-bg)` |
+| `--drp-input-label-inset` | `var(--drp-input-padding-x)` |
+| `--drp-input-label-font-size` | `var(--drp-font-size)` |
 | `--drp-input-label-fg` | `var(--drp-muted-fg)` |
+| `--drp-input-label-bg` | `var(--drp-input-bg)` |
 | `--drp-input-label-focus-fg` | `var(--drp-input-border-focus)` |
 | `--drp-input-label-invalid-fg` | `var(--drp-invalid-border)` |
 | `--drp-input-label-disabled-fg` | `var(--drp-disabled-fg)` |
-| `--drp-input-label-font-size` | `var(--drp-font-size)` |
-| `--drp-input-label-inset` | `var(--drp-input-padding-x)` |
 | `--drp-separator-fg` | `var(--drp-muted-fg)` |
-| `--drp-popover-bg` | `var(--drp-bg)` |
-| `--drp-popover-fg` | `var(--drp-fg)` |
 | `--drp-popover-border-color` | `var(--drp-border)` |
 | `--drp-popover-radius` | `var(--drp-radius)` |
+| `--drp-popover-bg` | `var(--drp-bg)` |
+| `--drp-popover-fg` | `var(--drp-fg)` |
+| `--drp-shortcut-radius` | `var(--drp-radius)` |
 | `--drp-shortcut-fg` | `var(--drp-fg)` |
 | `--drp-shortcut-hover-bg` | `var(--drp-hover-bg)` |
-| `--drp-shortcut-radius` | `var(--drp-radius)` |
 | `--drp-caption-fg` | `var(--drp-fg)` |
-| `--drp-weekday-fg` | `var(--drp-muted-fg)` |
 | `--drp-dropdowns-gap` | `var(--drp-gap)` |
-| `--drp-dropdown-caret-inset` | `var(--drp-dropdown-padding-x)` |
-| `--drp-dropdown-bg` | `var(--drp-bg)` |
-| `--drp-dropdown-fg` | `var(--drp-fg)` |
 | `--drp-dropdown-border-color` | `var(--drp-border)` |
 | `--drp-dropdown-radius` | `var(--drp-radius)` |
+| `--drp-dropdown-bg` | `var(--drp-bg)` |
+| `--drp-dropdown-caret-inset` | `var(--drp-dropdown-padding-x)` |
+| `--drp-dropdown-fg` | `var(--drp-fg)` |
+| `--drp-nav-radius` | `var(--drp-radius)` |
 | `--drp-nav-fg` | `var(--drp-fg)` |
 | `--drp-nav-hover-bg` | `var(--drp-hover-bg)` |
-| `--drp-nav-radius` | `var(--drp-radius)` |
+| `--drp-weekday-fg` | `var(--drp-muted-fg)` |
 | `--drp-day-radius` | `var(--drp-radius)` |
 | `--drp-day-hover-bg` | `var(--drp-hover-bg)` |
 | `--drp-day-selected-bg` | `var(--drp-accent)` |
@@ -222,10 +264,12 @@ Part tokens — each defaults to a seed, override one to disagree with a detail.
 | `--drp-day-today-fg` | `var(--drp-accent)` |
 | `--drp-day-disabled-fg` | `var(--drp-disabled-fg)` |
 | `--drp-day-outside-fg` | `var(--drp-muted-fg)` |
-| `--drp-time-input-bg` | `var(--drp-input-bg)` |
-| `--drp-time-input-fg` | `var(--drp-input-fg)` |
+| `--drp-day-focus-ring-width` | `var(--drp-focus-ring-width)` |
 | `--drp-time-input-border-color` | `var(--drp-input-border-color)` |
 | `--drp-time-input-radius` | `var(--drp-input-radius)` |
+| `--drp-time-input-bg` | `var(--drp-input-bg)` |
+| `--drp-time-input-fg` | `var(--drp-input-fg)` |
+| `--drp-time-focus-ring-width` | `var(--drp-focus-ring-width)` |
 | `--drp-time-arrow-color` | `var(--drp-muted-fg)` |
 | `--drp-time-arrow-hover-color` | `var(--drp-fg)` |
 

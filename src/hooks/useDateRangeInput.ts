@@ -4,7 +4,7 @@ import type { Boundary, DateRange } from '../types';
 export interface UseDateRangeInputOptions {
   value?: DateRange;
   defaultValue?: DateRange;
-  onChange?: (range: DateRange) => void;
+  onChange?: (range: DateRange, changed: Boundary | 'both') => void;
 }
 
 export interface DateRangeInputState {
@@ -31,20 +31,23 @@ export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInpu
   const range: DateRange = isControlled ? value! : internal;
 
   const commit = useCallback(
-    (next: DateRange) => {
+    (next: DateRange, changed: Boundary | 'both') => {
       if (!isControlled) setInternal(next);
-      onChange?.(next);
+      onChange?.(next, changed);
     },
     [isControlled, onChange],
   );
 
-  const setRange = useCallback((next: DateRange) => commit(next), [commit]);
+  const setRange = useCallback(
+    (next: DateRange) => commit(next, 'both'),
+    [commit],
+  );
 
   const setBoundary = useCallback(
     (b: Boundary, date: Date | null) => {
       const next: DateRange =
         b === 'start' ? [date, range[1]] : [range[0], date];
-      commit(next);
+      commit(next, b);
     },
     [range, commit],
   );

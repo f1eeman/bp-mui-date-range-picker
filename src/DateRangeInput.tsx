@@ -40,10 +40,10 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
       minDate, maxDate, disabledDays, allowSingleDayRange,
       numberOfMonths = 2,
       linkedNavigation = true,
-      shortcuts, timePrecision, showArrowButtons,
+      shortcuts, timePrecision, showArrowButtons = true,
       closeOnSelection = false,
       open: openProp, defaultOpen = false, onOpenChange,
-      disabled, placeholder, label, separator = '—',
+      disabled, readOnly, invalid, placeholder, label, separator = '—',
       classNames, container,
       className, ...rest
     } = props;
@@ -78,20 +78,23 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
     // invalid, the same way an out-of-bounds date does.
     const validateBoundary = useCallback(
       (boundary: Boundary, date: Date): boolean => {
-        if (!isWithinBounds(date, minDate, maxDate)) return false;
+        if (!isWithinBounds(date, minDate, maxDate, timePrecision)) return false;
         if (disabledDays && dateMatchModifiers(date, disabledDays)) return false;
         return keepsOrder(boundary, date, state.range);
       },
-      [minDate, maxDate, disabledDays, state.range],
+      [minDate, maxDate, disabledDays, timePrecision, state.range],
     );
 
-    // rdp v9 starts a range as { from: A, to: A }; the popover closes only once
-    // a genuine selection is complete — a two-day range, or a single-day range
-    // when allowSingleDayRange treats that as complete.
+    // rdp v9 starts a range as { from: A, to: A }, so the first click already
+    // produces a single-day range. Closing on that would end the interaction
+    // before the second date could be picked — and under allowSingleDayRange,
+    // which calls a single day complete, it made a two-day range unreachable by
+    // mouse entirely. So closeOnSelection waits for two different days.
+    // A single-day range is still a valid value; it is just never a signal that
+    // the user is finished, because only they know that.
     const closeIfComplete = (range: DateRange) => {
       const bothSet = range[0] != null && range[1] != null;
-      const complete = bothSet && (allowSingleDayRange || !isSingleDay(range));
-      if (closeOnSelection && complete) setOpen(false);
+      if (closeOnSelection && bothSet && !isSingleDay(range)) setOpen(false);
     };
 
     // The grid hands over its days at midnight. Under a time precision that
@@ -105,10 +108,11 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
     // better than refusing the click, which is why the gate the fields go
     // through does not apply here.
     const handleCalendarChange = (range: DateRange) => {
+      const bounds = { minDate, maxDate };
       const next: DateRange = timePrecision
         ? swapIfNeeded([
-            range[0] && carryTime('start', range[0], state.range[0]),
-            range[1] && carryTime('end', range[1], state.range[1]),
+            range[0] && carryTime('start', range[0], state.range[0], bounds),
+            range[1] && carryTime('end', range[1], state.range[1], bounds),
           ])
         : range;
       state.setRange(next);
@@ -136,6 +140,10 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
       const day = own ?? defaultBoundaryDate(boundary, other, allowSingleDayRange);
       const next = withTimeOf(day, clock);
       if (!keepsOrder(boundary, next, state.range)) return false;
+      // The clock decides a moment, so minDate/maxDate apply to it too. Without
+      // this the day was inside the bound and the time inside that day was not
+      // checked at all — a "no earlier than now" deadline accepted midnight.
+      if (!isWithinBounds(next, minDate, maxDate, timePrecision)) return false;
       state.setBoundary(boundary, next);
       return true;
     };
@@ -144,19 +152,29 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
     // rather than silently resetting it to midnight.
     const missingTimeFor = (b: Boundary) =>
       timePrecision
-        ? (d: Date) => carryTime(b, d, state.range[b === 'start' ? 0 : 1])
+        ? (d: Date) =>
+            carryTime(b, d, state.range[b === 'start' ? 0 : 1], { minDate, maxDate })
         : undefined;
 
     const inputGroup = (
-      <div className={mergeSlot('inputGroup', classNames)}>
+      <div
+        className={[
+          mergeSlot('inputGroup', classNames),
+          invalid && mergeSlot('inputGroupInvalid', classNames),
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         <DateInputField
           value={state.range[0]}
           parsing={parsing}
           onCommit={(d) => state.setBoundary('start', d)}
-          onFocus={() => setOpen(true)}
+          onFocus={() => !readOnly && setOpen(true)}
           placeholder={placeholder?.start}
           label={label?.start}
           disabled={disabled}
+          readOnly={readOnly}
+          invalid={invalid}
           validate={(d) => validateBoundary('start', d)}
           applyMissingTime={missingTimeFor('start')}
           sideSlot="inputStart"
@@ -169,10 +187,12 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
           value={state.range[1]}
           parsing={parsing}
           onCommit={(d) => state.setBoundary('end', d)}
-          onFocus={() => setOpen(true)}
+          onFocus={() => !readOnly && setOpen(true)}
           placeholder={placeholder?.end}
           label={label?.end}
           disabled={disabled}
+          readOnly={readOnly}
+          invalid={invalid}
           validate={(d) => validateBoundary('end', d)}
           applyMissingTime={missingTimeFor('end')}
           sideSlot="inputEnd"

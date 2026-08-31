@@ -12,12 +12,20 @@
    inherited into it, so a default declared on `.drp-root` could not be
    overridden from anywhere outside it — see docs/adr/0001.
 
-   Tokens come in two levels. Seeds are the handful a host normally sets; part
-   tokens default to a seed through `var()` and exist so a host can disagree
-   with one detail without restating the rest. Substitution is lazy, so a part
-   token inherits as the unresolved literal `var(--drp-seed)` and resolves in
-   the scope of whichever element uses it — which is why a retheme scoped to a
-   subtree works exactly as well as one at `:root`. */
+   Tokens come in two levels. Seeds are the handful a host normally sets, and
+   they are the only ones declared on `:root`. Part tokens exist so a host can
+   disagree with one detail without restating the rest, and they are never
+   declared at all: their default lives in the fallback of every read,
+   `var(--drp-input-bg, var(--drp-bg))`, spelled out down the whole chain.
+
+   That is not a style choice. A custom property's value is substituted where
+   the property is *declared*, not where it is read. Declaring
+   `--drp-input-bg: var(--drp-bg)` on `:root` therefore resolved the seed on
+   `:root` and inherited the finished colour downwards, so a host overriding
+   `--drp-bg` further down the tree — a scoped retheme, or `style` on the
+   component — never reached the part token. Writing the default as a fallback
+   defers the whole chain to the element that reads it, which is what makes an
+   override work at any level — see docs/adr/0004. */
 
 @layer bp-drp {
   :root {
@@ -61,49 +69,20 @@
     /* Borderless by default: each field carries its own box. A host that wants
        one shared outline around both (a Material UI outlined field) puts the
        border here and zeroes --drp-input-border-width. */
-    --drp-input-group-gap: var(--drp-gap);
     --drp-input-group-bg: transparent;
     --drp-input-group-border-color: transparent;
     --drp-input-group-border-width: 0;
-    --drp-input-group-border-hover: var(--drp-input-group-border-color);
-    --drp-input-group-border-focus: var(--drp-input-group-border-color);
-    /* Material UI's outlined field goes 1px -> 2px on focus. Kept equal to the
-       resting width by default so nothing shifts unless a host asks for it. */
-    --drp-input-group-border-width-focus: var(--drp-input-group-border-width);
-    --drp-input-group-radius: var(--drp-radius);
     --drp-input-group-height: auto;
     --drp-input-group-padding-x: 0;
 
     /* ---- input ---------------------------------------------------------- */
-    --drp-input-bg: var(--drp-bg);
-    --drp-input-fg: var(--drp-fg);
-    --drp-input-placeholder-fg: var(--drp-muted-fg);
-    --drp-input-border-color: var(--drp-border);
-    --drp-input-border-hover: var(--drp-input-border-color);
-    --drp-input-border-focus: var(--drp-accent);
     --drp-input-border-width: 1px;
-    --drp-input-border-width-focus: var(--drp-input-border-width);
-    --drp-input-radius: var(--drp-radius);
     --drp-input-height: 2.25rem;
     --drp-input-width: auto;
     --drp-input-padding-x: 0.75rem;
     --drp-input-text-align: start;
-    --drp-input-disabled-bg: var(--drp-input-bg);
 
-    /* ---- input label -----------------------------------------------------
-       The floated label straddles the top border, so it has to paint over it —
-       hence a background rather than a real gap in the line. It follows the
-       field's own background, which is right whenever the field has one. A host
-       whose fields are transparent (Material UI's outlined field is) has to name
-       the surface behind them here, because CSS cannot read it. */
-    --drp-input-label-bg: var(--drp-input-bg);
-    --drp-input-label-fg: var(--drp-muted-fg);
-    --drp-input-label-focus-fg: var(--drp-input-border-focus);
-    --drp-input-label-invalid-fg: var(--drp-invalid-border);
-    --drp-input-label-disabled-fg: var(--drp-disabled-fg);
-    --drp-input-label-font-size: var(--drp-font-size);
-    /* Where the resting label starts: over the placeholder it stands in for. */
-    --drp-input-label-inset: var(--drp-input-padding-x);
+    /* ---- input label ------------------------------------------------------ */
     /* Breathing room either side of the floated label, so the border line stops
        short of the text rather than touching it. */
     --drp-input-label-padding-x: 0.25rem;
@@ -111,14 +90,7 @@
        0.75 is the ratio Material UI uses. */
     --drp-input-label-float-scale: 0.75;
 
-    /* ---- separator ------------------------------------------------------ */
-    --drp-separator-fg: var(--drp-muted-fg);
-
     /* ---- popover -------------------------------------------------------- */
-    --drp-popover-bg: var(--drp-bg);
-    --drp-popover-fg: var(--drp-fg);
-    --drp-popover-border-color: var(--drp-border);
-    --drp-popover-radius: var(--drp-radius);
     --drp-popover-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     /* Was hardcoded at 50. Material UI puts modals at 1300, so a popover
        opened inside a dialog went behind it with no way to say otherwise. */
@@ -127,67 +99,38 @@
 
     /* ---- shortcuts ------------------------------------------------------ */
     --drp-shortcuts-width: 10rem;
-    --drp-shortcut-fg: var(--drp-fg);
-    --drp-shortcut-hover-bg: var(--drp-hover-bg);
-    --drp-shortcut-radius: var(--drp-radius);
     --drp-shortcut-active-bg: #eef2ff;
     --drp-shortcut-active-fg: #4338ca;
 
     /* ---- calendar ------------------------------------------------------- */
     --drp-months-gap: 2rem;
-    --drp-caption-fg: var(--drp-fg);
-    --drp-weekday-fg: var(--drp-muted-fg);
 
     /* ---- caption dropdowns ---------------------------------------------- */
     /* Between the month and year selects. Was a hardcoded 0.25rem, which read
        as one control rather than two. */
-    --drp-dropdowns-gap: var(--drp-gap);
     --drp-dropdown-padding-x: 0.5rem;
     --drp-dropdown-padding-y: 0.125rem;
     /* The caret is drawn by this package, not by the browser — see the rule
        below for why. Its colour follows the caption, so it is themed by
        --drp-caption-fg like the text beside it. */
     --drp-dropdown-caret-size: 0.6rem;
-    --drp-dropdown-caret-inset: var(--drp-dropdown-padding-x);
     /* Used as a mask, so only the shape matters — the fill comes from
        currentColor. Swap it for a different glyph if you want one. */
     --drp-dropdown-caret: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5l5-5' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --drp-dropdown-bg: var(--drp-bg);
-    --drp-dropdown-fg: var(--drp-fg);
-    --drp-dropdown-border-color: var(--drp-border);
-    --drp-dropdown-radius: var(--drp-radius);
 
     /* ---- month navigation ------------------------------------------------ */
     --drp-nav-button-size: 1.75rem;
-    --drp-nav-fg: var(--drp-fg);
-    --drp-nav-hover-bg: var(--drp-hover-bg);
-    --drp-nav-radius: var(--drp-radius);
 
     /* ---- days ------------------------------------------------------------ */
     --drp-day-size: 2.25rem;
-    /* Separate from --drp-radius so square fields can sit above round days,
-       which is what Material UI's own picker looks like. */
-    --drp-day-radius: var(--drp-radius);
-    --drp-day-hover-bg: var(--drp-hover-bg);
-    --drp-day-selected-bg: var(--drp-accent);
-    --drp-day-selected-fg: var(--drp-accent-fg);
     --drp-day-range-bg: #e0e7ff;
     --drp-day-range-fg: #312e81;
-    --drp-day-today-fg: var(--drp-accent);
-    --drp-day-disabled-fg: var(--drp-disabled-fg);
-    --drp-day-outside-fg: var(--drp-muted-fg);
 
     /* ---- time picker ------------------------------------------------------ */
-    --drp-time-input-bg: var(--drp-input-bg);
-    --drp-time-input-fg: var(--drp-input-fg);
-    --drp-time-input-border-color: var(--drp-input-border-color);
-    --drp-time-input-radius: var(--drp-input-radius);
     --drp-time-input-width: 3rem;
     --drp-time-input-height: 2rem;
     --drp-time-divider-width: 0.75rem;
     --drp-time-arrow-height: 1.25rem;
-    --drp-time-arrow-color: var(--drp-muted-fg);
-    --drp-time-arrow-hover-color: var(--drp-fg);
   }
 
   /* The root sets the whole type context, not just the family. Without the
@@ -216,19 +159,28 @@
     align-items: center;
     box-sizing: border-box;
     height: var(--drp-input-group-height);
-    gap: var(--drp-input-group-gap);
+    gap: var(--drp-input-group-gap, var(--drp-gap));
     padding: 0 var(--drp-input-group-padding-x);
     border: var(--drp-input-group-border-width) solid var(--drp-input-group-border-color);
-    border-radius: var(--drp-input-group-radius);
+    border-radius: var(--drp-input-group-radius, var(--drp-radius));
     background: var(--drp-input-group-bg);
     transition: border-color var(--drp-transition);
   }
   .drp-input-group:hover {
-    border-color: var(--drp-input-group-border-hover);
+    border-color: var(--drp-input-group-border-hover, var(--drp-input-group-border-color));
+  }
+  /* Material UI's outlined field goes 1px -> 2px on focus.
+     --drp-input-group-border-width-focus defaults to the resting width, so
+     nothing shifts unless a host asks for it. */
+  /* The host's own verdict on the value. The group carries it as well as the
+     fields, because a host that drew one outline around both dates has the
+     border there and nowhere else. */
+  .drp-input-group-invalid {
+    border-color: var(--drp-input-group-border-invalid, var(--drp-invalid-border));
   }
   .drp-input-group:focus-within {
-    border-color: var(--drp-input-group-border-focus);
-    border-width: var(--drp-input-group-border-width-focus);
+    border-color: var(--drp-input-group-border-focus, var(--drp-input-group-border-color));
+    border-width: var(--drp-input-group-border-width-focus, var(--drp-input-group-border-width));
   }
 
   /* Positioning context for the label, and nothing else — it takes its size
@@ -246,28 +198,29 @@
     width: var(--drp-input-width);
     height: var(--drp-input-height);
     padding: 0 var(--drp-input-padding-x);
-    border: var(--drp-input-border-width) solid var(--drp-input-border-color);
-    border-radius: var(--drp-input-radius);
-    background: var(--drp-input-bg);
+    border: var(--drp-input-border-width) solid var(--drp-input-border-color, var(--drp-border));
+    border-radius: var(--drp-input-radius, var(--drp-radius));
+    background: var(--drp-input-bg, var(--drp-bg));
     font: inherit;
     text-align: var(--drp-input-text-align);
-    color: var(--drp-input-fg);
+    color: var(--drp-input-fg, var(--drp-fg));
     outline: none;
     transition: border-color var(--drp-transition), box-shadow var(--drp-transition);
   }
   .drp-input::placeholder {
-    color: var(--drp-input-placeholder-fg);
+    color: var(--drp-input-placeholder-fg, var(--drp-muted-fg));
   }
   .drp-input:hover {
-    border-color: var(--drp-input-border-hover);
+    border-color: var(--drp-input-border-hover, var(--drp-input-border-color, var(--drp-border)));
   }
   .drp-input:focus {
-    border-color: var(--drp-input-border-focus);
-    border-width: var(--drp-input-border-width-focus);
-    box-shadow: 0 0 0 var(--drp-focus-ring-width) var(--drp-focus-ring);
+    border-color: var(--drp-input-border-focus, var(--drp-accent));
+    border-width: var(--drp-input-border-width-focus, var(--drp-input-border-width));
+    box-shadow: 0 0 0 var(--drp-input-focus-ring-width, var(--drp-focus-ring-width))
+      var(--drp-focus-ring);
   }
   .drp-input:disabled {
-    background: var(--drp-input-disabled-bg);
+    background: var(--drp-input-disabled-bg, var(--drp-input-bg, var(--drp-bg)));
     color: var(--drp-disabled-fg);
   }
   .drp-input-invalid,
@@ -276,23 +229,30 @@
   }
   .drp-input-invalid:focus {
     border-color: var(--drp-invalid-border);
-    box-shadow: 0 0 0 var(--drp-focus-ring-width) var(--drp-invalid-ring);
+    box-shadow: 0 0 0 var(--drp-input-focus-ring-width, var(--drp-focus-ring-width))
+      var(--drp-invalid-ring);
   }
 
   /* Resting: standing in for the placeholder, centred in the field. */
   .drp-input-label {
     position: absolute;
     top: 50%;
-    left: var(--drp-input-label-inset);
-    max-width: calc(100% - 2 * var(--drp-input-label-inset));
+    left: var(--drp-input-label-inset, var(--drp-input-padding-x));
+    max-width: calc(100% - 2 * var(--drp-input-label-inset, var(--drp-input-padding-x)));
     padding: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    font-size: var(--drp-input-label-font-size);
+    font-size: var(--drp-input-label-font-size, var(--drp-font-size));
     line-height: 1;
-    color: var(--drp-input-label-fg);
-    background: var(--drp-input-label-bg);
+    color: var(--drp-input-label-fg, var(--drp-muted-fg));
+    /* The floated label straddles the top border, so it has to paint over it —
+       hence a background rather than a real gap in the line. It follows the
+       field's own background, which is right whenever the field has one. A host
+       whose fields are transparent (Material UI's outlined field is) has to
+       name the surface behind them in --drp-input-label-bg, because CSS cannot
+       read it. */
+    background: var(--drp-input-label-bg, var(--drp-input-bg, var(--drp-bg)));
     /* The label is decoration over a field that already has a click target;
        clicks have to reach the input under it. Its `for` still focuses the
        field for anyone using the accessibility tree. */
@@ -313,7 +273,7 @@
      in rather than sliding right. */
   .drp-input-label-floating {
     top: 0;
-    left: calc(var(--drp-input-label-inset) - var(--drp-input-label-padding-x));
+    left: calc(var(--drp-input-label-inset, var(--drp-input-padding-x)) - var(--drp-input-label-padding-x));
     padding: 0 var(--drp-input-label-padding-x);
     transform: translateY(-50%) scale(var(--drp-input-label-float-scale));
   }
@@ -322,31 +282,31 @@
      invalid whether or not it has focus, and a disabled one is neither. All
      three are single-class + :has, so source order is the tie-break. */
   .drp-input-root:has(.drp-input:focus) .drp-input-label {
-    color: var(--drp-input-label-focus-fg);
+    color: var(--drp-input-label-focus-fg, var(--drp-input-border-focus, var(--drp-accent)));
   }
   .drp-input-root:has(.drp-input-invalid) .drp-input-label {
-    color: var(--drp-input-label-invalid-fg);
+    color: var(--drp-input-label-invalid-fg, var(--drp-invalid-border));
   }
   .drp-input-root:has(.drp-input:disabled) .drp-input-label {
-    color: var(--drp-input-label-disabled-fg);
+    color: var(--drp-input-label-disabled-fg, var(--drp-disabled-fg));
   }
 
   .drp-separator {
     display: inline-flex;
     align-items: center;
-    color: var(--drp-separator-fg);
+    color: var(--drp-separator-fg, var(--drp-muted-fg));
   }
 
   .drp-popover {
     z-index: var(--drp-popover-z-index);
-    border: 1px solid var(--drp-popover-border-color);
-    border-radius: var(--drp-popover-radius);
-    background: var(--drp-popover-bg);
+    border: 1px solid var(--drp-popover-border-color, var(--drp-border));
+    border-radius: var(--drp-popover-radius, var(--drp-radius));
+    background: var(--drp-popover-bg, var(--drp-bg));
     box-shadow: var(--drp-popover-shadow);
     font-family: var(--drp-font-family);
     font-size: var(--drp-font-size);
     line-height: var(--drp-line-height);
-    color: var(--drp-popover-fg);
+    color: var(--drp-popover-fg, var(--drp-fg));
     color-scheme: var(--drp-color-scheme);
   }
 
@@ -359,22 +319,22 @@
     width: var(--drp-shortcuts-width);
     flex-direction: column;
     gap: 0.25rem;
-    border-right: 1px solid var(--drp-popover-border-color);
+    border-right: 1px solid var(--drp-popover-border-color, var(--drp-border));
     padding: 0.5rem;
   }
   .drp-shortcut {
     border: none;
     background: none;
-    border-radius: var(--drp-shortcut-radius);
+    border-radius: var(--drp-shortcut-radius, var(--drp-radius));
     padding: 0.25rem 0.5rem;
     text-align: left;
     font: inherit;
-    color: var(--drp-shortcut-fg);
+    color: var(--drp-shortcut-fg, var(--drp-fg));
     cursor: pointer;
     transition: background-color var(--drp-transition);
   }
   .drp-shortcut:hover {
-    background: var(--drp-shortcut-hover-bg);
+    background: var(--drp-shortcut-hover-bg, var(--drp-hover-bg));
   }
   .drp-shortcut-active {
     background: var(--drp-shortcut-active-bg);
@@ -395,7 +355,7 @@
     position: relative;
     box-sizing: border-box;
     padding: var(--drp-panel-padding);
-    color: var(--drp-popover-fg);
+    color: var(--drp-popover-fg, var(--drp-fg));
   }
   .drp-calendar * {
     box-sizing: border-box;
@@ -429,7 +389,7 @@
     justify-content: center;
     padding: 0 var(--drp-nav-button-size);
     font-weight: var(--drp-font-weight-medium);
-    color: var(--drp-caption-fg);
+    color: var(--drp-caption-fg, var(--drp-fg));
   }
   /* react-day-picker pairs each <select> with an aria-hidden label span and
      hides the select behind it. This component leaves the select natively
@@ -441,7 +401,7 @@
     position: relative;
     display: flex;
     align-items: center;
-    gap: var(--drp-dropdowns-gap);
+    gap: var(--drp-dropdowns-gap, var(--drp-gap));
   }
   .drp-dropdown-root {
     position: relative;
@@ -455,17 +415,17 @@
      the theme instead of the user agent. */
   .drp-dropdown {
     appearance: none;
-    border: 1px solid var(--drp-dropdown-border-color);
-    border-radius: var(--drp-dropdown-radius);
-    background: var(--drp-dropdown-bg);
+    border: 1px solid var(--drp-dropdown-border-color, var(--drp-border));
+    border-radius: var(--drp-dropdown-radius, var(--drp-radius));
+    background: var(--drp-dropdown-bg, var(--drp-bg));
     padding: var(--drp-dropdown-padding-y)
       calc(
-        var(--drp-dropdown-caret-inset) + var(--drp-dropdown-caret-size) +
+        var(--drp-dropdown-caret-inset, var(--drp-dropdown-padding-x)) + var(--drp-dropdown-caret-size) +
           var(--drp-dropdown-padding-x)
       )
       var(--drp-dropdown-padding-y) var(--drp-dropdown-padding-x);
     font: inherit;
-    color: var(--drp-dropdown-fg);
+    color: var(--drp-dropdown-fg, var(--drp-fg));
     cursor: pointer;
   }
   .drp-dropdown:disabled {
@@ -476,7 +436,7 @@
   .drp-dropdown-root::after {
     content: '';
     position: absolute;
-    right: var(--drp-dropdown-caret-inset);
+    right: var(--drp-dropdown-caret-inset, var(--drp-dropdown-padding-x));
     width: var(--drp-dropdown-caret-size);
     height: var(--drp-dropdown-caret-size);
     background: currentColor;
@@ -505,15 +465,15 @@
     padding: 0;
     border: none;
     background: none;
-    border-radius: var(--drp-nav-radius);
+    border-radius: var(--drp-nav-radius, var(--drp-radius));
     font: inherit;
-    color: var(--drp-nav-fg);
+    color: var(--drp-nav-fg, var(--drp-fg));
     cursor: pointer;
     appearance: none;
     transition: background-color var(--drp-transition);
   }
   .drp-nav-button:hover {
-    background: var(--drp-nav-hover-bg);
+    background: var(--drp-nav-hover-bg, var(--drp-hover-bg));
   }
   .drp-nav-button:disabled,
   .drp-nav-button[aria-disabled='true'] {
@@ -543,7 +503,7 @@
     font-size: var(--drp-font-size-sm);
     font-weight: 400;
     text-align: center;
-    color: var(--drp-weekday-fg);
+    color: var(--drp-weekday-fg, var(--drp-muted-fg));
   }
 
   /* The cell carries the size of the grid and the button fills it. Splitting
@@ -567,14 +527,20 @@
     padding: 0;
     border: none;
     background: none;
-    border-radius: var(--drp-day-radius);
+    /* --drp-day-radius is separate from --drp-radius so square fields can sit
+       above round days, which is what Material UI's own picker looks like. */
+    border-radius: var(--drp-day-radius, var(--drp-radius));
     font: inherit;
     color: inherit;
     cursor: pointer;
     transition: background-color var(--drp-transition);
   }
-  .drp-day:hover {
-    background: var(--drp-day-hover-bg);
+  /* Guarded by the cell's own state: the fill of a selected day sits on the
+     cell, and an opaque hover background on the button would cover it while
+     the number kept the foreground the fill chose — white on almost-white at
+     the ends of a range, right under the pointer that just clicked it. */
+  .drp-day-cell:not(.drp-day-selected) .drp-day:hover {
+    background: var(--drp-day-hover-bg, var(--drp-hover-bg));
   }
   /* The selection classes land on the cell, so the fill sits there and the
      button stays transparent — that is what keeps a range contiguous across
@@ -583,9 +549,9 @@
   .drp-day-selected,
   .drp-day-range-start,
   .drp-day-range-end {
-    background: var(--drp-day-selected-bg);
-    border-radius: var(--drp-day-radius);
-    color: var(--drp-day-selected-fg);
+    background: var(--drp-day-selected-bg, var(--drp-accent));
+    border-radius: var(--drp-day-radius, var(--drp-radius));
+    color: var(--drp-day-selected-fg, var(--drp-accent-fg));
   }
   .drp-day-range-middle {
     background: var(--drp-day-range-bg);
@@ -602,21 +568,27 @@
      which is exactly what --drp-day-selected-bg fills that cell with, so the
      number disappeared into it. */
   .drp-day-today:not(.drp-day-selected):not(.drp-day-range-start):not(.drp-day-range-end):not(.drp-day-range-middle) {
-    color: var(--drp-day-today-fg);
+    color: var(--drp-day-today-fg, var(--drp-accent));
   }
   .drp-day-disabled {
-    color: var(--drp-day-disabled-fg);
+    color: var(--drp-day-disabled-fg, var(--drp-disabled-fg));
   }
+  /* Colour carries the state; the cursor has to be repeated on the button
+     because it does not cross the <button> boundary. A strike-through used to
+     live here too — it read as cancelled rather than unavailable, and with
+     `minDate = today` it crossed out the whole of the past month. */
   .drp-day-disabled .drp-day {
-    text-decoration: line-through;
     cursor: default;
   }
   .drp-day-outside {
-    color: var(--drp-day-outside-fg);
+    color: var(--drp-day-outside-fg, var(--drp-muted-fg));
   }
   .drp-day-focused {
-    outline: var(--drp-focus-ring-width) solid var(--drp-focus-ring);
-    outline-offset: calc(-1 * var(--drp-focus-ring-width));
+    outline: var(--drp-day-focus-ring-width, var(--drp-focus-ring-width)) solid
+      var(--drp-focus-ring);
+    outline-offset: calc(
+      -1 * var(--drp-day-focus-ring-width, var(--drp-focus-ring-width))
+    );
   }
   /* Showing more than one month leaves surplus cells for the adjacent month's
      days. react-day-picker marks them and its sheet hid them; without a rule
@@ -638,7 +610,7 @@
     display: flex;
     gap: var(--drp-months-gap);
     padding-inline: var(--drp-panel-padding);
-    border-top: 1px solid var(--drp-popover-border-color);
+    border-top: 1px solid var(--drp-popover-border-color, var(--drp-border));
   }
 
   /* flex-basis 0 with equal growth, so the shares stay equal whatever a clock
@@ -659,10 +631,10 @@
     align-items: center;
     box-sizing: border-box;
     height: var(--drp-time-input-height);
-    border: 1px solid var(--drp-time-input-border-color);
-    border-radius: var(--drp-time-input-radius);
-    background: var(--drp-time-input-bg);
-    color: var(--drp-time-input-fg);
+    border: 1px solid var(--drp-time-input-border-color, var(--drp-input-border-color, var(--drp-border)));
+    border-radius: var(--drp-time-input-radius, var(--drp-input-radius, var(--drp-radius)));
+    background: var(--drp-time-input-bg, var(--drp-input-bg, var(--drp-bg)));
+    color: var(--drp-time-input-fg, var(--drp-input-fg, var(--drp-fg)));
   }
 
   .drp-time-picker-separator {
@@ -694,8 +666,11 @@
     appearance: textfield;
   }
   .drp-time-picker-input:focus-visible {
-    outline: var(--drp-focus-ring-width) solid var(--drp-focus-ring);
-    outline-offset: calc(-1 * var(--drp-focus-ring-width));
+    outline: var(--drp-time-focus-ring-width, var(--drp-focus-ring-width)) solid
+      var(--drp-focus-ring);
+    outline-offset: calc(
+      -1 * var(--drp-time-focus-ring-width, var(--drp-focus-ring-width))
+    );
     border-radius: inherit;
   }
 
@@ -720,11 +695,11 @@
     padding: 0;
     border: 0;
     background: none;
-    color: var(--drp-time-arrow-color);
+    color: var(--drp-time-arrow-color, var(--drp-muted-fg));
     cursor: pointer;
   }
   .drp-time-picker-arrow-button:hover:not(:disabled) {
-    color: var(--drp-time-arrow-hover-color);
+    color: var(--drp-time-arrow-hover-color, var(--drp-fg));
   }
 
   .drp-time-picker-input:disabled,
@@ -733,7 +708,7 @@
     cursor: default;
   }
   .drp-time-picker-input-row:has(.drp-time-picker-input:disabled) {
-    background: var(--drp-input-disabled-bg);
+    background: var(--drp-input-disabled-bg, var(--drp-input-bg, var(--drp-bg)));
     color: var(--drp-disabled-fg);
   }
 }

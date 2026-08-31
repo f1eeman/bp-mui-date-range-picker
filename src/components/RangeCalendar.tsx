@@ -5,6 +5,21 @@ import { addMonths, isSameMonth, startOfDay, startOfMonth } from 'date-fns';
 import type { ClassNames, DateRange } from '../types';
 import { rdpClassNames } from './rdpClassNames';
 
+/**
+ * The month dropdown is a control, and its options are headings. date-fns
+ * returns the form a month takes inside a sentence, which in Russian and most
+ * other Slavic locales is lower case (`август`) and reads as a typo here. The
+ * locale is not the place to fix it — the same locale is right for prose — and
+ * the host cannot reach the `<option>` text at all, so the package capitalises.
+ *
+ * Upper-cased through the locale's own code, because the mapping is not
+ * universal: Turkish `i` becomes `İ`, not `I`.
+ */
+const capitaliseMonth = (month: Date, locale?: Locale): string => {
+  const name = month.toLocaleString(locale?.code, { month: 'long' });
+  return name.charAt(0).toLocaleUpperCase(locale?.code) + name.slice(1);
+};
+
 export interface RangeCalendarProps {
   value: DateRange;
   onChange: (range: DateRange) => void;
@@ -190,6 +205,9 @@ export function RangeCalendar({
     disabled: buildDisabled(minDate, maxDate, disabledDays),
     captionLayout: 'dropdown' as const,
     navLayout: 'around' as const,
+    formatters: {
+      formatMonthDropdown: (month: Date) => capitaliseMonth(month, locale),
+    },
     startMonth,
     endMonth,
     locale,

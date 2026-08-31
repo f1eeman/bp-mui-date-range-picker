@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DateRangeInput } from './DateRangeInput';
 
@@ -12,6 +12,115 @@ const monthsOnScreen = () =>
   });
 
 describe('DateRangeInput', () => {
+  it('opens a boundary day at the bound rather than outside it', () => {
+    // A start with no clock yet opens its day at 00:00 and an end closes it at
+    // 23:59. On the very day a bound falls that default is guaranteed to be
+    // outside it, so picking today under `minDate = today 16:47` produced a
+    // value the component itself would refuse. The default is pulled to the
+    // bound instead.
+    // The calendar opens on the current month, so the bound is placed there
+    // too — a hardcoded month would only be visible for part of the year.
+    const bound = new Date();
+    bound.setHours(16, 47, 0, 0);
+    const onChange = vi.fn();
+    render(
+      <DateRangeInput
+        timePrecision="minute"
+        minDate={bound}
+        numberOfMonths={1}
+        onChange={onChange}
+        defaultOpen
+      />,
+    );
+    const day = [...document.querySelectorAll('.drp-day')].find(
+      (d) => d.textContent?.trim() === String(bound.getDate()),
+    );
+    fireEvent.click(day!);
+    const [range] = onChange.mock.calls.at(-1)!;
+    expect(range[0].getHours()).toBe(16);
+    expect(range[0].getMinutes()).toBe(47);
+  });
+
+  it('refuses a clock earlier than minDate on the boundary day', () => {
+    // Deadline "not before now" on a task form: minDate carries today's time,
+    // and the start of the range must not fall before it. The whole day used
+    // to be accepted, so 00:00 today passed a bound set at 16:47 today.
+    const onChange = vi.fn();
+    render(
+      <DateRangeInput
+        timePrecision="minute"
+        minDate={new Date(2026, 7, 31, 16, 47)}
+        value={[new Date(2026, 7, 31, 18, 0), null]}
+        onChange={onChange}
+        defaultOpen
+      />,
+    );
+    const hours = document.querySelector('.drp-time-picker-input') as HTMLInputElement;
+    fireEvent.change(hours, { target: { value: '9' } });
+    fireEvent.blur(hours);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('shows a read-only value without letting it be changed', () => {
+    // `disabled` is not a substitute: it greys the value out and drops the
+    // field from the tab order, so a range the user is meant to read but not
+    // edit had no representation at all.
+    render(<DateRangeInput readOnly value={[new Date(2026, 7, 10), new Date(2026, 7, 20)]} />);
+    const inputs = [...document.querySelectorAll('.drp-input')] as HTMLInputElement[];
+    for (const input of inputs) {
+      expect(input.readOnly).toBe(true);
+      expect(input.disabled).toBe(false);
+    }
+    fireEvent.focus(inputs[0]);
+    expect(document.querySelector('.drp-popover')).toBeNull();
+  });
+
+  it('lets the host declare the value invalid', () => {
+    // The package marks a field invalid only when it cannot parse the text.
+    // Every real form has rules the package knows nothing about — required,
+    // no wider than 90 days, not overlapping another booking — and had no way
+    // to say so: the error text showed under a field that stayed grey, and
+    // aria-invalid kept telling a screen reader the opposite.
+    render(<DateRangeInput invalid />);
+    for (const input of document.querySelectorAll('.drp-input')) {
+      expect(input).toHaveAttribute('aria-invalid', 'true');
+      expect(input.className).toContain('drp-input-invalid');
+    }
+    expect(document.querySelector('.drp-input-group')!.className).toContain(
+      'drp-input-group-invalid',
+    );
+  });
+
+  it('keeps the popover open after a first click, even with allowSingleDayRange', () => {
+    // The two props are documented apart and each behaves as written, but
+    // together they trap: react-day-picker opens a range as { from: A, to: A },
+    // allowSingleDayRange calls that complete, and closeOnSelection shuts the
+    // popover before the second date can be picked. A two-day range became
+    // unreachable by mouse. closeOnSelection now waits for two different days;
+    // a single-day range is still a valid value, just not a reason to close.
+    render(
+      <DateRangeInput
+        allowSingleDayRange
+        closeOnSelection
+        defaultOpen
+        numberOfMonths={1}
+      />,
+    );
+    const day = [...document.querySelectorAll('.drp-day')].find(
+      (d) => d.textContent?.trim() === '10',
+    );
+    fireEvent.click(day!);
+    expect(document.querySelector('.drp-popover')).not.toBeNull();
+  });
+
+  it('shows the time step arrows without being asked', () => {
+    // A time field with no arrows looks like a plain text input and says
+    // nothing about being a stepped value. Every host that mounted one asked
+    // for them, which is the definition of a wrong default.
+    render(<DateRangeInput timePrecision="minute" defaultOpen />);
+    expect(document.querySelectorAll('.drp-time-picker-arrow-button').length).toBeGreaterThan(0);
+  });
+
   it('renders two text inputs', () => {
     render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} />);
     expect(screen.getByPlaceholderText('from')).toBeInTheDocument();
@@ -51,10 +160,11 @@ describe('DateRangeInput', () => {
     await userEvent.type(screen.getByPlaceholderText('from'), '2026-05-10');
     await userEvent.type(screen.getByPlaceholderText('to'), '2026-05-20');
     await userEvent.tab();
-    expect(onChange).toHaveBeenLastCalledWith([
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
       new Date(2026, 4, 10),
       new Date(2026, 4, 20),
     ]);
+    expect(onChange.mock.calls.at(-1)![1]).toBe('end');
   });
 
   it('reads and writes the fields in a date pattern the host names', async () => {
@@ -69,7 +179,7 @@ describe('DateRangeInput', () => {
     await userEvent.type(screen.getByPlaceholderText('from'), '10/05/2026');
     await userEvent.type(screen.getByPlaceholderText('to'), '20/05/2026');
     await userEvent.tab();
-    expect(onChange).toHaveBeenLastCalledWith([
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
       new Date(2026, 4, 10),
       new Date(2026, 4, 20),
     ]);
@@ -110,7 +220,7 @@ describe('DateRangeInput', () => {
     await userEvent.type(fromInput, '2026-05-15');
     await userEvent.type(toInput, '2026-05-20');
     await userEvent.tab();
-    expect(onChange).toHaveBeenLastCalledWith([
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
       new Date(2026, 4, 15),
       new Date(2026, 4, 20),
     ]);
@@ -415,7 +525,7 @@ describe('DateRangeInput range order', () => {
     await userEvent.type(to, '2026-05-10');
     await userEvent.tab();
     expect(to).toHaveAttribute('aria-invalid', 'false');
-    expect(onChange).toHaveBeenLastCalledWith([new Date(2026, 4, 10), new Date(2026, 4, 10)]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([new Date(2026, 4, 10), new Date(2026, 4, 10)]);
   });
 
   it('refuses a clock dialled past the other end, and snaps the field back', async () => {
@@ -547,7 +657,7 @@ describe('DateRangeInput with a time precision', () => {
     await userEvent.clear(from);
     await userEvent.type(from, '2026-05-15');
     await userEvent.tab();
-    expect(onChange).toHaveBeenLastCalledWith([
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
       new Date(2026, 4, 15, 9, 15),
       new Date(2026, 4, 20, 18, 30),
     ]);
@@ -568,7 +678,7 @@ describe('DateRangeInput with a time precision', () => {
     await userEvent.clear(hours);
     await userEvent.type(hours, '7');
     await userEvent.tab();
-    expect(onChange).toHaveBeenLastCalledWith([
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
       new Date(2026, 4, 10, 7, 15),
       new Date(2026, 4, 20, 18, 30),
     ]);
@@ -621,7 +731,7 @@ describe('DateRangeInput with a time precision', () => {
         await userEvent.clear(hours);
         await userEvent.type(hours, '9');
         await userEvent.tab();
-        expect(onChange).toHaveBeenLastCalledWith([new Date(2026, 7, 30, 9, 0), null]);
+        expect(onChange.mock.calls.at(-1)![0]).toEqual([new Date(2026, 7, 30, 9, 0), null]);
       } finally {
         vi.useRealTimers();
       }
@@ -644,7 +754,7 @@ describe('DateRangeInput with a time precision', () => {
       await userEvent.clear(hours);
       await userEvent.type(hours, '18');
       await userEvent.tab();
-      expect(onChange).toHaveBeenLastCalledWith([
+      expect(onChange.mock.calls.at(-1)![0]).toEqual([
         new Date(2026, 4, 10, 9, 15),
         new Date(2026, 4, 11, 18, 59, 59, 999),
       ]);

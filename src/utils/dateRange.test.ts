@@ -15,6 +15,32 @@ describe('isWithinBounds', () => {
     const d = new Date(2026, 0, 10, 14, 0);
     expect(isWithinBounds(d, new Date(2026, 0, 10), new Date(2026, 0, 10))).toBe(true);
   });
+
+  describe('to the minute', () => {
+    // The props are typed `Date` and a host under `timePrecision` reasonably
+    // expects the bound to hold to the minute. Comparing whole days let a
+    // deadline of "not before now" be satisfied by midnight of the same day —
+    // seventeen hours in the past.
+    it('rejects a time earlier than minDate on the same day', () => {
+      const min = new Date(2026, 0, 10, 16, 47);
+      expect(isWithinBounds(new Date(2026, 0, 10, 0, 0), min, undefined, 'minute')).toBe(false);
+      expect(isWithinBounds(new Date(2026, 0, 10, 16, 47), min, undefined, 'minute')).toBe(true);
+      expect(isWithinBounds(new Date(2026, 0, 10, 18, 0), min, undefined, 'minute')).toBe(true);
+    });
+
+    it('rejects a time later than maxDate on the same day', () => {
+      const max = new Date(2026, 0, 10, 9, 30);
+      expect(isWithinBounds(new Date(2026, 0, 10, 23, 59), undefined, max, 'minute')).toBe(false);
+      expect(isWithinBounds(new Date(2026, 0, 10, 9, 0), undefined, max, 'minute')).toBe(true);
+    });
+
+    it('still compares whole days when there is no time precision', () => {
+      // Without a clock in the UI there is no way to satisfy a bound mid-day,
+      // so the whole day has to count.
+      const min = new Date(2026, 0, 10, 16, 47);
+      expect(isWithinBounds(new Date(2026, 0, 10, 0, 0), min)).toBe(true);
+    });
+  });
 });
 
 describe('swapIfNeeded', () => {

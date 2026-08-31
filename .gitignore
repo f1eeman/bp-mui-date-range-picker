@@ -5,3 +5,8 @@ dist
 
 # npm pack output — a build artefact, not a source
 *.tgz
+
+# Integration notes taken against a specific host. They name that host and its
+# paths, and everything worth keeping from them has been folded into docs/adr
+# and the comments beside the code they explain.
+.scratch/

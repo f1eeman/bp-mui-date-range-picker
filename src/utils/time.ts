@@ -31,9 +31,36 @@ export function defaultBoundaryTime(boundary: Boundary, day: Date): Date {
   return boundary === 'start' ? startOfDay(day) : endOfDay(day);
 }
 
-/** `day` keeping the clock already on `prev`, or the boundary default when unset. */
-export function carryTime(boundary: Boundary, day: Date, prev: Date | null): Date {
-  return prev ? withTimeOf(day, prev) : defaultBoundaryTime(boundary, day);
+/**
+ * Pulls a moment inside [minDate, maxDate].
+ *
+ * Only the boundary defaults need this. A clock the user dialled is refused
+ * outright when it falls outside a bound, because silently moving a value
+ * someone typed is worse than not taking it — but a default they never chose
+ * has no such claim, and leaving it outside means the component hands back a
+ * value it would itself reject.
+ */
+export function clampToBounds(date: Date, minDate?: Date, maxDate?: Date): Date {
+  if (minDate && date < minDate) return new Date(minDate);
+  if (maxDate && date > maxDate) return new Date(maxDate);
+  return date;
+}
+
+/**
+ * `day` keeping the clock already on `prev`, or the boundary default when unset.
+ *
+ * The default opens or closes the day, which on the day a bound falls is
+ * guaranteed to sit outside it — hence the clamp. It applies to the default
+ * only: `prev` is a clock the user set, and is left alone.
+ */
+export function carryTime(
+  boundary: Boundary,
+  day: Date,
+  prev: Date | null,
+  bounds?: { minDate?: Date; maxDate?: Date },
+): Date {
+  if (prev) return withTimeOf(day, prev);
+  return clampToBounds(defaultBoundaryTime(boundary, day), bounds?.minDate, bounds?.maxDate);
 }
 
 /**

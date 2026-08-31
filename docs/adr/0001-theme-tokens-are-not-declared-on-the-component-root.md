@@ -20,6 +20,12 @@ literal and resolves in the scope of whichever element uses it. That is what
 lets a host scope a retheme to a subtree, and it is the reason the two-level
 token vocabulary works at all.
 
+> **Superseded by [ADR 0004](0004-part-token-defaults-live-in-the-fallback-not-on-root.md).**
+> The paragraph above is wrong: substitution happens on the element carrying
+> the declaration, so a part token declared on `:root` resolves its seed on
+> `:root` and inherits a finished value. Part token defaults now live in the
+> fallback of each read. Everything else in this ADR still holds.
+
 This also removed the reason `readThemeTokens` existed. The popover is
 portalled outside the component, could not inherit tokens from `.drp-root`, and
 so had 28 resolved values copied onto it as inline styles once per open — which

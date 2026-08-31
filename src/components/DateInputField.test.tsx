@@ -38,6 +38,18 @@ function HarnessWithValidate({
 }
 
 describe('DateInputField', () => {
+  it('keeps the browser autofill list off the field', () => {
+    // A plain text input, so the browser remembers what was typed and offers
+    // the list back — over the calendar the same field just opened. A date
+    // field should never suggest history, and the host cannot reach the
+    // <input> to say so: props extend the root <div>, not the fields.
+    render(<Harness onCommit={vi.fn()} />);
+    const input = screen.getByPlaceholderText('start');
+    expect(input).toHaveAttribute('autocomplete', 'off');
+    expect(input).toHaveAttribute('autocorrect', 'off');
+    expect(input).toHaveAttribute('spellcheck', 'false');
+  });
+
   it('commits a parsed date on blur', async () => {
     const onCommit = vi.fn();
     render(<Harness onCommit={onCommit} />);
