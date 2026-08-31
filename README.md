@@ -340,6 +340,36 @@ whatever hour you last dialled in. A boundary with no date yet shows its time
 fields disabled: there is no clock to edit until a day exists, and editing one
 would have to invent the day too.
 
+### Order of the two ends
+
+A date that would put the end before its start is **refused**, not reordered.
+The field marks itself invalid — `aria-invalid`, and the `inputInvalid` slot —
+exactly as an out-of-bounds date does, and the value is not committed:
+
+```
+from: 2026-05-20   to: 2026-05-05   ->  the end field goes invalid, nothing commits
+from: 2026-05-20   to: 2026-05-20   ->  accepted; refusing is about the order, not the length
+```
+
+The same gate stands in front of the time fields under a `timePrecision`. A
+clock dialled past the other end is not taken, and the field snaps back to the
+value it had rather than sit there showing a number nothing accepted.
+
+Two places are deliberately outside the gate, because in neither does the user
+name the offending value:
+
+- **A calendar click.** react-day-picker keeps the range ordered by itself, so a
+  click cannot reverse it. What it can do is land both ends on one day — click
+  the day a boundary already sits on — and under a `timePrecision` the clocks
+  carried there were inherited, not chosen: a start carrying 18:00 beside an end
+  carrying 09:00. Those two are ordered rather than the click refused.
+- **A shortcut**, which names a whole range and sets both ends at once.
+
+Before 3.0.0 a reversed range was silently swapped instead. That moved the date
+just typed into the *other* field, which read as the component losing the input.
+If you relied on the swap, order the range yourself before handing it in — a
+`value` you pass is used as given, and was never swapped even then.
+
 ### Date order and separator
 
 The fields default to `yyyy-MM-dd`. `datePattern` takes a date-fns pattern for

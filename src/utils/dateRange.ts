@@ -1,5 +1,5 @@
 import { isAfter, isBefore, isSameDay, startOfDay } from 'date-fns';
-import type { DateRange } from '../types';
+import type { Boundary, DateRange } from '../types';
 
 /** True when `date` is inside [minDate, maxDate]; bounds are day-inclusive. */
 export function isWithinBounds(date: Date, minDate?: Date, maxDate?: Date): boolean {
@@ -14,11 +14,30 @@ export function isWithinBounds(date: Date, minDate?: Date, maxDate?: Date): bool
  * start or null end is a valid partial state (e.g. the user is still filling
  * one field) and is returned unchanged — only a fully-set, reversed range is
  * swapped.
+ *
+ * Reaches one path only: the clocks a single calendar click carries onto one
+ * day, which the user inherited rather than named. A value the user does name
+ * is turned away by `keepsOrder` instead of being reordered behind them.
  */
 export function swapIfNeeded(range: DateRange): DateRange {
   const [start, end] = range;
   if (start && end && isAfter(start, end)) return [end, start];
   return range;
+}
+
+/**
+ * True when giving `boundary` this date leaves the range ordered start <= end.
+ *
+ * An unset opposite end is no constraint, and both ends on the same instant is a
+ * range rather than a reversal — refusing is about the order, not about the
+ * length. This is the gate that replaced quietly swapping the two ends: a swap
+ * moved the date the user had just typed into the other field, which read as the
+ * component losing the input.
+ */
+export function keepsOrder(boundary: Boundary, date: Date, range: DateRange): boolean {
+  const other = boundary === 'start' ? range[1] : range[0];
+  if (!other) return true;
+  return boundary === 'start' ? !isAfter(date, other) : !isBefore(date, other);
 }
 
 /** True when both ends are set and fall on the same calendar day. */

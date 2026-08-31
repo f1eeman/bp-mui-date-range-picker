@@ -349,6 +349,108 @@ describe('DateRangeInput', () => {
   });
 });
 
+describe('DateRangeInput range order', () => {
+  it('refuses a date typed into the end field that falls before the start', async () => {
+    // It used to be accepted and the two ends quietly changed places, so the
+    // date the user typed appeared in the other field.
+    const onChange = vi.fn();
+    render(
+      <DateRangeInput
+        placeholder={{ start: 'from', end: 'to' }}
+        defaultValue={[new Date(2026, 4, 10), null]}
+        onChange={onChange}
+      />,
+    );
+    const to = screen.getByPlaceholderText('to');
+    await userEvent.type(to, '2026-05-05');
+    await userEvent.tab();
+    expect(to).toHaveAttribute('aria-invalid', 'true');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('refuses a date typed into the start field that falls after the end', async () => {
+    const onChange = vi.fn();
+    render(
+      <DateRangeInput
+        placeholder={{ start: 'from', end: 'to' }}
+        defaultValue={[null, new Date(2026, 4, 10)]}
+        onChange={onChange}
+      />,
+    );
+    const from = screen.getByPlaceholderText('from');
+    await userEvent.type(from, '2026-05-20');
+    await userEvent.tab();
+    expect(from).toHaveAttribute('aria-invalid', 'true');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('accepts an end on the same instant as the start', async () => {
+    // Refusing is about reversing the range, not about collapsing it.
+    const onChange = vi.fn();
+    render(
+      <DateRangeInput
+        placeholder={{ start: 'from', end: 'to' }}
+        defaultValue={[new Date(2026, 4, 10), null]}
+        onChange={onChange}
+      />,
+    );
+    const to = screen.getByPlaceholderText('to');
+    await userEvent.type(to, '2026-05-10');
+    await userEvent.tab();
+    expect(to).toHaveAttribute('aria-invalid', 'false');
+    expect(onChange).toHaveBeenLastCalledWith([new Date(2026, 4, 10), new Date(2026, 4, 10)]);
+  });
+
+  it('refuses a clock dialled past the other end, and snaps the field back', async () => {
+    const onChange = vi.fn();
+    render(
+      <DateRangeInput
+        placeholder={{ start: 'from', end: 'to' }}
+        timePrecision="minute"
+        defaultValue={[new Date(2026, 4, 20, 9, 0), new Date(2026, 4, 20, 18, 0)]}
+        onChange={onChange}
+      />,
+    );
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    const hours = await screen.findByLabelText('start hours');
+    await userEvent.clear(hours);
+    await userEvent.type(hours, '20');
+    await userEvent.tab();
+    // Asserted on the value rather than on the spy staying silent: leaving the
+    // text field commits the range it already held, which is a real call with
+    // nothing new in it.
+    for (const [range] of onChange.mock.calls) {
+      expect(range[0]!.getHours()).toBe(9);
+    }
+    // Nothing accepted 20, so the field cannot go on showing it.
+    expect(hours).toHaveValue(9);
+  });
+
+  it('orders the clocks a single calendar click carries onto one day', async () => {
+    // The clocks here are inherited, not chosen: one click puts both ends on the
+    // same day, and a start that carried 18:00 beside an end that carried 09:00
+    // would reverse the range. Refusing a click is worse than ordering what it
+    // inherited.
+    const onChange = vi.fn();
+    render(
+      <DateRangeInput
+        placeholder={{ start: 'from', end: 'to' }}
+        timePrecision="minute"
+        defaultValue={[new Date(2026, 4, 20, 18, 0), new Date(2026, 4, 25, 9, 0)]}
+        onChange={onChange}
+      />,
+    );
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    // Clicking the day a boundary already sits on is what collapses the range
+    // onto one day, which is when the carried clocks can reverse it.
+    await userEvent.click(screen.getAllByText('20')[0]);
+    const [start, end] = onChange.mock.calls.at(-1)![0];
+    expect(start!.getTime()).toBeLessThanOrEqual(end!.getTime());
+    expect([start!.getDate(), end!.getDate()]).toEqual([20, 20]);
+    expect([start!.getHours(), end!.getHours()]).toEqual([9, 18]);
+  });
+});
+
 describe('DateRangeInput with a time precision', () => {
   it('shows the clock in the field', async () => {
     render(

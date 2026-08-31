@@ -3,7 +3,7 @@ import type { Locale } from 'date-fns';
 import type { Boundary, DateRange, DateRangeInputProps, Shortcut } from './types';
 import { useDateRangeInput } from './hooks/useDateRangeInput';
 import { useDateParsing } from './hooks/useDateParsing';
-import { isWithinBounds, isSingleDay } from './utils/dateRange';
+import { isWithinBounds, isSingleDay, keepsOrder, swapIfNeeded } from './utils/dateRange';
 import { carryTime, defaultBoundaryDate, withTimeOf } from './utils/time';
 import { createDefaultShortcuts } from './utils/shortcuts';
 import { mergeSlot } from './utils/mergeClassNames';
@@ -73,13 +73,16 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
     });
     const presets = useMemo(() => resolveShortcuts(shortcuts, locale), [shortcuts, locale]);
 
-    const validateDate = useCallback(
-      (date: Date): boolean => {
+    // The gate both text fields commit through. Order is part of it: a date that
+    // would put the end before its start is refused and the field marks itself
+    // invalid, the same way an out-of-bounds date does.
+    const validateBoundary = useCallback(
+      (boundary: Boundary, date: Date): boolean => {
         if (!isWithinBounds(date, minDate, maxDate)) return false;
         if (disabledDays && dateMatchModifiers(date, disabledDays)) return false;
-        return true;
+        return keepsOrder(boundary, date, state.range);
       },
-      [minDate, maxDate, disabledDays],
+      [minDate, maxDate, disabledDays, state.range],
     );
 
     // rdp v9 starts a range as { from: A, to: A }; the popover closes only once
@@ -94,12 +97,19 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
     // The grid hands over its days at midnight. Under a time precision that
     // would wipe a clock the user had already dialled in, so each end keeps the
     // one it has and a fresh end opens or closes its day instead.
+    //
+    // One click can land both ends on the same day — clicking the day a boundary
+    // already sits on does exactly that — and the clocks carried there were
+    // inherited rather than chosen: a start carrying 18:00 beside an end
+    // carrying 09:00 reverses the range. Ordering what a click inherited is
+    // better than refusing the click, which is why the gate the fields go
+    // through does not apply here.
     const handleCalendarChange = (range: DateRange) => {
       const next: DateRange = timePrecision
-        ? [
+        ? swapIfNeeded([
             range[0] && carryTime('start', range[0], state.range[0]),
             range[1] && carryTime('end', range[1], state.range[1]),
-          ]
+          ])
         : range;
       state.setRange(next);
       closeIfComplete(next);
@@ -116,12 +126,18 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
     // on is a question about the range, so it is answered here. A boundary that
     // already has a day keeps it; one that does not is given the day it would
     // most likely have meant — see `defaultBoundaryDate`.
-    const handleTimeChange = (boundary: Boundary, clock: Date) => {
+    //
+    // Reports whether the clock was taken. A refused one has to snap the field
+    // back rather than leave it showing a number nothing accepted.
+    const handleTimeChange = (boundary: Boundary, clock: Date): boolean => {
       const [start, end] = state.range;
       const own = boundary === 'start' ? start : end;
       const other = boundary === 'start' ? end : start;
       const day = own ?? defaultBoundaryDate(boundary, other, allowSingleDayRange);
-      state.setBoundary(boundary, withTimeOf(day, clock));
+      const next = withTimeOf(day, clock);
+      if (!keepsOrder(boundary, next, state.range)) return false;
+      state.setBoundary(boundary, next);
+      return true;
     };
 
     // Lets a day typed on its own keep the clock already on that boundary,
@@ -140,7 +156,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
           onFocus={() => setOpen(true)}
           placeholder={placeholder?.start}
           disabled={disabled}
-          validate={validateDate}
+          validate={(d) => validateBoundary('start', d)}
           applyMissingTime={missingTimeFor('start')}
           sideSlot="inputStart"
           classNames={classNames}
@@ -155,7 +171,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
           onFocus={() => setOpen(true)}
           placeholder={placeholder?.end}
           disabled={disabled}
-          validate={validateDate}
+          validate={(d) => validateBoundary('end', d)}
           applyMissingTime={missingTimeFor('end')}
           sideSlot="inputEnd"
           classNames={classNames}

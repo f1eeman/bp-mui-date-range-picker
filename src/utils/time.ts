@@ -24,8 +24,8 @@ export function withTimeOf(day: Date, clock: Date): Date {
  * The clock a boundary gets when it has none yet: a start opens its day, an end
  * closes it. A range picked with two clicks then covers the whole span rather
  * than collapsing to midnight-to-midnight, which is what a filter almost always
- * means — and it keeps `swapIfNeeded` quiet on a single-day range, where an end
- * at 00:00 would otherwise sort before its own start.
+ * means — and it keeps a single-day range the right way round, where an end at
+ * 00:00 would sort before its own start and be refused by `keepsOrder`.
  */
 export function defaultBoundaryTime(boundary: Boundary, day: Date): Date {
   return boundary === 'start' ? startOfDay(day) : endOfDay(day);
@@ -43,7 +43,7 @@ export function carryTime(boundary: Boundary, day: Date, prev: Date | null): Dat
  * Dialling a time has to land on some day, and refusing to guess one is what
  * used to leave these fields disabled. The guess is made against the opposite
  * boundary so that the range it produces is already ordered, rather than one
- * `swapIfNeeded` has to rescue:
+ * `keepsOrder` would have to turn away:
  *
  * - nothing picked at all — today, the only day either end can mean;
  * - the other end is set — the day beside it, so a start lands before its end

@@ -20,7 +20,7 @@ interface TimeFieldProps {
   boundary: Boundary;
   value: number;
   disabled: boolean;
-  onCommit: (n: number) => void;
+  onCommit: (n: number) => boolean;
   onStep: (delta: number) => void;
   className: string;
   id: string;
@@ -50,13 +50,17 @@ function TimeField({
     setText(format(value));
   }, [value]);
 
-  /** Read the field back, or fall back to the committed value if it says nothing. */
+  /**
+   * Read the field back, or fall back to the committed value if it says nothing
+   * — or if the range refused what it said. Returning the attempt instead would
+   * leave the field displaying a clock the value never took.
+   */
   const commit = () => {
     if (text.trim() === '') return value;
     const n = Number(text);
     if (!Number.isFinite(n)) return value;
     const clamped = Math.min(max, Math.max(0, Math.trunc(n)));
-    if (clamped !== value) onCommit(clamped);
+    if (clamped !== value) return onCommit(clamped) ? clamped : value;
     return clamped;
   };
 
@@ -151,8 +155,12 @@ export interface TimePickerProps {
    * meaningful: when the boundary has no day yet the caller decides which day
    * the time lands on, since that is a question about the range and not about
    * this picker.
+   *
+   * Returns false when the range refused the clock — one that would put the end
+   * before its start. The field then comes back to the value it had, because a
+   * field showing a number nothing accepted is a field that lies.
    */
-  onChange: (date: Date) => void;
+  onChange: (date: Date) => boolean;
   disabled?: boolean;
   /** Show a step button above and below each field. Defaults to false. */
   showArrowButtons?: boolean;
@@ -179,7 +187,7 @@ export function TimePicker({
   // exists, and the day is invented on commit rather than on display.
   const clock = value ?? defaultBoundaryTime(boundary, new Date());
 
-  const commit = (unit: Unit, n: number) => {
+  const commit = (unit: Unit, n: number): boolean => {
     const next = new Date(clock);
     if (unit === 'hours') next.setHours(n);
     else if (unit === 'minutes') next.setMinutes(n);
@@ -187,7 +195,7 @@ export function TimePicker({
     // A range picked with two clicks ends at 23:59:59.999. Dialling any field
     // on it should move that field and nothing else, so the milliseconds ride
     // along rather than being quietly zeroed.
-    onChange(next);
+    return onChange(next);
   };
 
   const step = (unit: Unit, delta: number) =>

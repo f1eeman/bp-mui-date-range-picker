@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isWithinBounds, swapIfNeeded, isSingleDay } from './dateRange';
+import { isWithinBounds, swapIfNeeded, keepsOrder, isSingleDay } from './dateRange';
 
 describe('isWithinBounds', () => {
   it('returns true with no bounds', () => {
@@ -48,5 +48,33 @@ describe('isSingleDay', () => {
   });
   it('is false when an end is null', () => {
     expect(isSingleDay([new Date(2026, 0, 10), null])).toBe(false);
+  });
+});
+
+describe('keepsOrder', () => {
+  const at = (day: number, hour = 0) => new Date(2026, 4, day, hour);
+
+  it('turns away an end before the start', () => {
+    expect(keepsOrder('end', at(5), [at(10), null])).toBe(false);
+  });
+
+  it('turns away a start after the end', () => {
+    expect(keepsOrder('start', at(20), [null, at(10)])).toBe(false);
+  });
+
+  it('allows both ends on the same instant', () => {
+    // Refusing is about the order, not about the length of the range.
+    expect(keepsOrder('end', at(10), [at(10), null])).toBe(true);
+    expect(keepsOrder('start', at(10), [null, at(10)])).toBe(true);
+  });
+
+  it('compares clocks, not just days', () => {
+    expect(keepsOrder('end', at(10, 9), [at(10, 18), null])).toBe(false);
+    expect(keepsOrder('end', at(10, 19), [at(10, 18), null])).toBe(true);
+  });
+
+  it('has nothing to say when the opposite end is unset', () => {
+    expect(keepsOrder('start', at(20), [null, null])).toBe(true);
+    expect(keepsOrder('end', at(1), [null, null])).toBe(true);
   });
 });

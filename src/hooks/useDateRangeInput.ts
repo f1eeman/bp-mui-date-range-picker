@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
 import type { Boundary, DateRange } from '../types';
-import { swapIfNeeded } from '../utils/dateRange';
 
 export interface UseDateRangeInputOptions {
   value?: DateRange;
@@ -16,8 +15,12 @@ export interface DateRangeInputState {
 
 /**
  * Single source of truth for the range value. Supports controlled (`value` +
- * `onChange`) and uncontrolled (`defaultValue`) modes. Every committed range is
- * ordered start <= end.
+ * `onChange`) and uncontrolled (`defaultValue`) modes.
+ *
+ * Ordering is not enforced here. A reversed range used to be swapped on the way
+ * through, which moved a date the user had just typed into the other field; the
+ * component refuses such a date at the gate instead (`keepsOrder`), so what this
+ * hook is handed is what it commits.
  */
 export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInputState {
   const { value, defaultValue, onChange } = opts;
@@ -29,9 +32,8 @@ export function useDateRangeInput(opts: UseDateRangeInputOptions): DateRangeInpu
 
   const commit = useCallback(
     (next: DateRange) => {
-      const ordered = swapIfNeeded(next);
-      if (!isControlled) setInternal(ordered);
-      onChange?.(ordered);
+      if (!isControlled) setInternal(next);
+      onChange?.(next);
     },
     [isControlled, onChange],
   );
