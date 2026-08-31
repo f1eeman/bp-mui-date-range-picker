@@ -280,6 +280,160 @@ describe('following the selection', () => {
     expect(monthsOnScreen(container)).toEqual(['7/2026', '8/2026']);
   });
 
+  it('follows a selection off-screen even when its month has not changed', () => {
+    // Keyed on the month, a shortcut landing in the month a day was already
+    // picked from read as no change, so the off-screen check never ran: the
+    // fields took the new range and the grids stayed a year out.
+    const { container, rerender } = render(
+      <RangeCalendar {...props} value={[new Date(2026, 7, 3), new Date(2026, 7, 5)]} linked />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['11/2027', '0/2028']);
+
+    rerender(
+      <RangeCalendar
+        {...props}
+        value={[new Date(2026, 7, 1), new Date(2026, 7, 31)]}
+        linked
+      />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['7/2026', '8/2026']);
+  });
+
+  it('leaves the view alone when only the clock on a boundary moves', () => {
+    // Which is why the key is the anchor day and not its timestamp: a minute
+    // bumped on the time picker would otherwise snap the grids back onto a
+    // selection the user had deliberately paged away from.
+    const { container, rerender } = render(
+      <RangeCalendar {...props} value={[new Date(2026, 7, 3, 9, 0), null]} linked />,
+    );
+    const before = monthsOnScreen(container);
+
+    rerender(
+      <RangeCalendar {...props} value={[new Date(2026, 7, 3, 9, 30), null]} linked />,
+    );
+    expect(monthsOnScreen(container)).toEqual(before);
+  });
+
+  it('follows an end that lands off-screen, and puts it in the last grid', () => {
+    // Anchored on the start alone this did nothing at all: a date typed into the
+    // end field went to its time picker and the grids stayed on the start's
+    // month, so the day just named was nowhere on screen.
+    const may = { ...props, defaultMonth: new Date(2026, 4, 1) };
+    const { container, rerender } = render(
+      <RangeCalendar {...may} value={[new Date(2026, 4, 20), null]} linked />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['4/2026', '5/2026']);
+
+    rerender(
+      <RangeCalendar
+        {...may}
+        value={[new Date(2026, 4, 20), new Date(2026, 11, 15)]}
+        linked
+      />,
+    );
+    // November and December — the run up to the end, not the months past it.
+    expect(monthsOnScreen(container)).toEqual(['10/2026', '11/2026']);
+  });
+
+  it('moves only the end panel when unlinked, leaving the start on screen', () => {
+    // Unlinked panels are the user's own windows. Moving them as a block took
+    // the start's month off screen to reveal an end years away, which is the one
+    // thing independent paging exists to avoid.
+    const may = { ...props, defaultMonth: new Date(2026, 4, 1) };
+    const { container, rerender } = render(
+      <RangeCalendar {...may} value={[new Date(2026, 4, 20), null]} linked={false} />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['4/2026', '5/2026']);
+
+    rerender(
+      <RangeCalendar
+        {...may}
+        value={[new Date(2026, 4, 20), new Date(2029, 11, 15)]}
+        linked={false}
+      />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['4/2026', '11/2029']);
+  });
+
+  it('moves only the start panel when unlinked and only the start moves', () => {
+    const may = { ...props, defaultMonth: new Date(2026, 4, 1) };
+    const end = new Date(2026, 5, 10);
+    const { container, rerender } = render(
+      <RangeCalendar {...may} value={[new Date(2026, 4, 20), end]} linked={false} />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['4/2026', '5/2026']);
+
+    rerender(
+      <RangeCalendar {...may} value={[new Date(2025, 0, 8), end]} linked={false} />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['0/2025', '5/2026']);
+  });
+
+  it('re-derives every unlinked panel when both ends move at once', () => {
+    // A whole new value — a shortcut, or a controlled range replaced from
+    // outside — is not one boundary being edited, so the view re-derives rather
+    // than half of it staying behind on a month nobody asked for.
+    const { container, rerender } = render(
+      <RangeCalendar {...props} value={[null, null]} linked={false} />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['11/2027', '0/2028']);
+
+    rerender(
+      <RangeCalendar
+        {...props}
+        value={[new Date(2026, 7, 20), new Date(2026, 7, 27)]}
+        linked={false}
+      />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['7/2026', '8/2026']);
+  });
+
+  it('keeps the two linked grids consecutive, whatever that costs the start', () => {
+    // Linked means one window of consecutive months, so May 2026 and December
+    // 2029 cannot both be on screen. Revealing the end moves the window off the
+    // start; the alternative is not showing the day just typed at all.
+    const may = { ...props, defaultMonth: new Date(2026, 4, 1) };
+    const { container, rerender } = render(
+      <RangeCalendar {...may} value={[new Date(2026, 4, 20), null]} linked />,
+    );
+    rerender(
+      <RangeCalendar
+        {...may}
+        value={[new Date(2026, 4, 20), new Date(2029, 11, 15)]}
+        linked
+      />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['10/2029', '11/2029']);
+  });
+
+  it('follows the start when both ends move at once', () => {
+    const { container, rerender } = render(
+      <RangeCalendar {...props} value={[null, null]} linked />,
+    );
+    rerender(
+      <RangeCalendar
+        {...props}
+        value={[new Date(2026, 7, 20), new Date(2026, 11, 15)]}
+        linked
+      />,
+    );
+    // A range reads from its beginning, so the start takes the first grid.
+    expect(monthsOnScreen(container)).toEqual(['7/2026', '8/2026']);
+  });
+
+  it('leaves the view alone when a new end is already on screen', () => {
+    // Following the end must not mean chasing it: an end inside a visible month
+    // has nothing to reveal.
+    const may = { ...props, defaultMonth: new Date(2026, 4, 1) };
+    const { container, rerender } = render(
+      <RangeCalendar {...may} value={[new Date(2026, 4, 20), null]} linked />,
+    );
+    rerender(
+      <RangeCalendar {...may} value={[new Date(2026, 4, 20), new Date(2026, 5, 3)]} linked />,
+    );
+    expect(monthsOnScreen(container)).toEqual(['4/2026', '5/2026']);
+  });
+
   it('leaves the view alone when the selection is already on screen', () => {
     // Picking a day in a visible month must not yank the calendar around.
     const { container, rerender } = render(
@@ -300,7 +454,10 @@ describe('following the selection', () => {
     rerender(
       <RangeCalendar {...props} value={[null, new Date(2025, 2, 4)]} linked />,
     );
-    expect(monthsOnScreen(container)).toEqual(['2/2025', '3/2025']);
+    // February and March: an end closes the view wherever it arrives, alone or
+    // not. The start it is still waiting for has to fall before it, so the
+    // months to look in are the ones ahead of the end, not behind it.
+    expect(monthsOnScreen(container)).toEqual(['1/2025', '2/2025']);
   });
 });
 });

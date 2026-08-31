@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DayPicker, type DateRange as RdpRange, type Matcher } from 'react-day-picker';
 import type { Locale } from 'date-fns';
-import { addMonths, isSameMonth, startOfMonth } from 'date-fns';
+import { addMonths, isSameMonth, startOfDay, startOfMonth } from 'date-fns';
 import type { ClassNames, DateRange } from '../types';
 import { rdpClassNames } from './rdpClassNames';
 
@@ -115,25 +115,64 @@ export function RangeCalendar({
   // could not see: navigate to December 2027, press "This month", and the grids
   // stayed in 2027 while the value was in 2026.
   //
-  // Only re-anchor when the new start is off-screen. Picking a day inside a
-  // visible month must not yank the view, and in unlinked mode neither must
-  // picking one in a panel the user has paged somewhere of their own.
+  // Only re-anchor when the boundary that moved is off-screen. Picking a day
+  // inside a visible month must not yank the view, and in unlinked mode neither
+  // must picking one in a panel the user has paged somewhere of their own.
   const shownMonths = linked
     ? Array.from({ length: count }, (_, i) => addMonths(linkedMonth, i))
     : panelMonths;
-  const anchor = value[0] ?? value[1];
-  const anchorKey = anchor ? startOfMonth(anchor).getTime() : null;
-  const [lastAnchorKey, setLastAnchorKey] = useState<number | null>(anchorKey);
 
-  if (anchorKey !== lastAnchorKey) {
+  // Both ends are tracked and the one that moved is the one followed. Anchored
+  // on the start alone, a date typed into the end field never moved the view:
+  // its time picker took the clock and the grids stayed put, so the day just
+  // named was nowhere on screen.
+  //
+  // Keyed on the day and not its month, because a shortcut landing in the month
+  // a day was already picked from read as no change at all and skipped the
+  // off-screen check entirely: pick 3 August, page the grids to August of the
+  // next year, press "This month", and the value moved while the view stayed a
+  // year out. A day is coarse enough to ignore a clock edited on the time
+  // picker, which must not yank the view either.
+  const startDay = value[0] ? startOfDay(value[0]).getTime() : null;
+  const endDay = value[1] ? startOfDay(value[1]).getTime() : null;
+  const [lastStartDay, setLastStartDay] = useState<number | null>(startDay);
+  const [lastEndDay, setLastEndDay] = useState<number | null>(endDay);
+
+  if (startDay !== lastStartDay || endDay !== lastEndDay) {
     // Adjusting state during render rather than in an effect: this reads as
     // part of deriving the view from the value, and it avoids painting the
     // wrong month first.
-    setLastAnchorKey(anchorKey);
-    if (anchor && !shownMonths.some((m) => isSameMonth(m, anchor))) {
-      const start = startOfMonth(anchor);
-      if (linked) setLinkedMonth(start);
-      else setUnlinkedMonths(Array.from({ length: count }, (_, i) => addMonths(start, i)));
+    setLastStartDay(startDay);
+    setLastEndDay(endDay);
+    const movedStart = startDay !== lastStartDay ? value[0] : null;
+    const movedEnd = endDay !== lastEndDay ? value[1] : null;
+    // The start wins when both moved, because a range reads from its beginning.
+    const followingStart = movedStart !== null;
+    const moved = movedStart ?? movedEnd;
+    if (moved && !shownMonths.some((m) => isSameMonth(m, moved))) {
+      // Which grid the boundary lands in: a start opens the view, an end closes
+      // it, so the months running up to an end stay on screen rather than the
+      // ones past it.
+      const panel = followingStart ? 0 : count - 1;
+      const month = startOfMonth(moved);
+      if (linked) {
+        // One window of consecutive months, so the whole of it moves. May 2026
+        // and December 2029 cannot both be on screen; the alternative is not
+        // showing the day just named at all.
+        setLinkedMonth(addMonths(month, -panel));
+      } else if (movedStart && movedEnd) {
+        // A whole new value — a shortcut, or a controlled range replaced from
+        // outside — is not one boundary being edited, so the view re-derives
+        // rather than half of it staying behind on a month nobody asked for.
+        const first = addMonths(month, -panel);
+        setUnlinkedMonths(Array.from({ length: count }, (_, i) => addMonths(first, i)));
+      } else {
+        // One boundary was edited, and unlinked panels are the user's own
+        // windows: only the one that owns that boundary moves. Moving them as a
+        // block took the start's month off screen to reveal an end years away,
+        // which is the one thing independent paging exists to avoid.
+        setUnlinkedMonths(panelMonths.map((m, i) => (i === panel ? month : m)));
+      }
     }
   }
 

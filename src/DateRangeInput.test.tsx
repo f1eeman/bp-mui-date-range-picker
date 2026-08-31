@@ -4,6 +4,13 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DateRangeInput } from './DateRangeInput';
 
+/** The month/year each grid on screen is showing, left to right. */
+const monthsOnScreen = () =>
+  [...document.querySelectorAll('.drp-month')].map((m) => {
+    const selects = m.querySelectorAll('select');
+    return `${(selects[0] as HTMLSelectElement).value}/${(selects[1] as HTMLSelectElement).value}`;
+  });
+
 describe('DateRangeInput', () => {
   it('renders two text inputs', () => {
     render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} />);
@@ -73,10 +80,48 @@ describe('DateRangeInput', () => {
     expect(fromInput).not.toHaveAttribute('aria-invalid', 'true');
   });
 
+  it('moves the calendars onto a date typed into the end field', async () => {
+    // The end used to reach its time picker and nothing else: the grids stayed
+    // on the start's month, so pressing Enter showed the clock changing while
+    // the day just typed stayed off screen.
+    render(
+      <DateRangeInput placeholder={{ start: 'from', end: 'to' }} timePrecision="minute" />,
+    );
+    await userEvent.type(screen.getByPlaceholderText('from'), '2026-05-20 09:00{Enter}');
+    expect(monthsOnScreen()).toEqual(['4/2026', '5/2026']);
+
+    await userEvent.type(screen.getByPlaceholderText('to'), '2026-12-15 18:00{Enter}');
+    // The end takes the last grid, so the months running up to it stay visible.
+    expect(monthsOnScreen()).toEqual(['10/2026', '11/2026']);
+  });
+
   it('renders the shortcuts panel when shortcuts are enabled', async () => {
     render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} shortcuts />);
     await userEvent.click(screen.getByPlaceholderText('from'));
     expect(await screen.findByRole('button', { name: 'Last 7 days' })).toBeInTheDocument();
+  });
+
+  it('moves the calendars onto a shortcut that lands in the month already picked from', async () => {
+    // Reported: pick days no shortcut covers, page the grids away, then press a
+    // shortcut — the fields took the new range and the calendars did not follow.
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date(2026, 7, 31, 12, 0));
+    try {
+      render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} shortcuts />);
+      await userEvent.click(screen.getByPlaceholderText('from'));
+      await userEvent.click(screen.getAllByText('3')[0]);
+      await userEvent.click(screen.getAllByText('5')[0]);
+      // Page a year on, so the picked days and the shortcut share a month name
+      // but not a month.
+      await userEvent.selectOptions(screen.getAllByRole('combobox')[1], '2027');
+      expect(monthsOnScreen()).toEqual(['7/2027', '8/2027']);
+
+      await userEvent.click(screen.getByRole('button', { name: 'This month' }));
+      expect(screen.getByPlaceholderText('from')).toHaveValue('2026-08-01');
+      expect(monthsOnScreen()).toEqual(['7/2026', '8/2026']);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('keeps the popover open after the first day click', async () => {
