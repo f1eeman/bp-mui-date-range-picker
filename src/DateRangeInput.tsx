@@ -36,7 +36,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
   function DateRangeInput(props, ref) {
     const {
       value, defaultValue, onChange,
-      formatDate, parseDate, locale,
+      formatDate, parseDate, datePattern, locale,
       minDate, maxDate, disabledDays, allowSingleDayRange,
       numberOfMonths = 2,
       linkedNavigation = true,
@@ -64,7 +64,13 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
     );
 
     const state = useDateRangeInput({ value, defaultValue, onChange });
-    const parsing = useDateParsing({ formatDate, parseDate, locale, timePrecision });
+    const parsing = useDateParsing({
+      formatDate,
+      parseDate,
+      datePattern,
+      locale,
+      timePrecision,
+    });
     const presets = useMemo(() => resolveShortcuts(shortcuts, locale), [shortcuts, locale]);
 
     const validateDate = useCallback(

@@ -40,6 +40,26 @@ describe('DateRangeInput', () => {
     ]);
   });
 
+  it('reads and writes the fields in a date pattern the host names', async () => {
+    const onChange = vi.fn();
+    render(
+      <DateRangeInput
+        datePattern="dd/MM/yyyy"
+        placeholder={{ start: 'from', end: 'to' }}
+        onChange={onChange}
+      />,
+    );
+    await userEvent.type(screen.getByPlaceholderText('from'), '10/05/2026');
+    await userEvent.type(screen.getByPlaceholderText('to'), '20/05/2026');
+    await userEvent.tab();
+    expect(onChange).toHaveBeenLastCalledWith([
+      new Date(2026, 4, 10),
+      new Date(2026, 4, 20),
+    ]);
+    // The committed value comes back through the same pattern, not the default.
+    expect(screen.getByPlaceholderText('from')).toHaveValue('10/05/2026');
+  });
+
   it('rejects a date typed outside minDate/maxDate and marks the field invalid', async () => {
     const onChange = vi.fn();
     render(

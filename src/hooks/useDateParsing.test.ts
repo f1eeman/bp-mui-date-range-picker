@@ -90,4 +90,55 @@ describe('useDateParsing', () => {
     const { result } = renderHook(() => useDateParsing({ parseDate: () => null }));
     expect(result.current.parse('whatever')).toBeNull();
   });
+  it('writes a date in whatever pattern the host names', () => {
+    const slash = renderHook(() => useDateParsing({ datePattern: 'dd/MM/yyyy' }));
+    expect(slash.result.current.format(new Date(2026, 4, 20))).toBe('20/05/2026');
+    const dash = renderHook(() => useDateParsing({ datePattern: 'dd-MM-yyyy' }));
+    expect(dash.result.current.format(new Date(2026, 4, 20))).toBe('20-05-2026');
+  });
+
+  it('reads that same pattern back', () => {
+    const slash = renderHook(() => useDateParsing({ datePattern: 'dd/MM/yyyy' }));
+    expect(slash.result.current.parse('20/05/2026')?.date).toEqual(new Date(2026, 4, 20));
+    const dash = renderHook(() => useDateParsing({ datePattern: 'dd-MM-yyyy' }));
+    expect(dash.result.current.parse('20-05-2026')?.date).toEqual(new Date(2026, 4, 20));
+  });
+
+  it('hangs the clock off the end of the pattern it was given', () => {
+    const { result } = renderHook(() =>
+      useDateParsing({ datePattern: 'dd.MM.yyyy', timePrecision: 'minute' }),
+    );
+    expect(result.current.format(new Date(2026, 4, 20, 9, 5))).toBe('20.05.2026 09:05');
+    const parsed = result.current.parse('20.05.2026 14:30');
+    expect(parsed?.date).toEqual(new Date(2026, 4, 20, 14, 30));
+    expect(parsed?.hasTime).toBe(true);
+  });
+
+  it('keeps the whole ladder under a pattern the host named', () => {
+    // Which is the point of the pattern over formatDate/parseDate: an
+    // under-specified clock and a date typed without one both still land, and
+    // the second still reports that it named no time.
+    const { result } = renderHook(() =>
+      useDateParsing({ datePattern: 'dd/MM/yyyy', timePrecision: 'second' }),
+    );
+    expect(result.current.parse('20/05/2026 14:30:45')?.date).toEqual(
+      new Date(2026, 4, 20, 14, 30, 45),
+    );
+    expect(result.current.parse('20/05/2026 14:30')?.hasTime).toBe(true);
+    const dateOnly = result.current.parse('20/05/2026');
+    expect(dateOnly?.date).toEqual(new Date(2026, 4, 20));
+    expect(dateOnly?.hasTime).toBe(false);
+  });
+
+  it('rejects a string that does not match the pattern it was given', () => {
+    const { result } = renderHook(() => useDateParsing({ datePattern: 'dd/MM/yyyy' }));
+    expect(result.current.parse('2026-05-20')).toBeNull();
+  });
+
+  it('lets formatDate and parseDate outrank the pattern', () => {
+    const { result } = renderHook(() =>
+      useDateParsing({ datePattern: 'dd/MM/yyyy', formatDate: () => 'CUSTOM' }),
+    );
+    expect(result.current.format(new Date(2026, 4, 20))).toBe('CUSTOM');
+  });
 });

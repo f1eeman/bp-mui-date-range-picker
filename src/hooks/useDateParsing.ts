@@ -3,15 +3,20 @@ import { format as dfFormat, parse as dfParse, isValid } from 'date-fns';
 import type { Locale } from 'date-fns';
 import type { TimePrecision } from '../types';
 
-const DATE_PATTERN = 'yyyy-MM-dd';
+const DEFAULT_DATE_PATTERN = 'yyyy-MM-dd';
 const TIME_PATTERN: Record<TimePrecision, string> = {
   minute: 'HH:mm',
   second: 'HH:mm:ss',
 };
 
-/** The text pattern for a given precision. Date-only when there is none. */
-function patternFor(precision?: TimePrecision): string {
-  return precision ? `${DATE_PATTERN} ${TIME_PATTERN[precision]}` : DATE_PATTERN;
+/**
+ * The text pattern for a given precision: the host's date pattern, with the
+ * clock hung off the end of it when there is one. The date half is the only
+ * half a host names — the time fields are numeric hh/mm/ss controls, so a
+ * 12-hour text pattern would read a clock the picker beside it cannot set.
+ */
+function patternFor(datePattern: string, precision?: TimePrecision): string {
+  return precision ? `${datePattern} ${TIME_PATTERN[precision]}` : datePattern;
 }
 
 /**
@@ -21,23 +26,28 @@ function patternFor(precision?: TimePrecision): string {
  * At second precision `14:30` is a clock the user under-specified, not a typo,
  * so the minute pattern sits between the full one and the date-only fallback.
  */
-function patternLadder(precision?: TimePrecision): [pattern: string, hasTime: boolean][] {
+function patternLadder(
+  datePattern: string,
+  precision?: TimePrecision,
+): [pattern: string, hasTime: boolean][] {
   if (precision === 'second') {
     return [
-      [patternFor('second'), true],
-      [patternFor('minute'), true],
-      [DATE_PATTERN, false],
+      [patternFor(datePattern, 'second'), true],
+      [patternFor(datePattern, 'minute'), true],
+      [datePattern, false],
     ];
   }
   if (precision === 'minute') {
-    return [[patternFor('minute'), true], [DATE_PATTERN, false]];
+    return [[patternFor(datePattern, 'minute'), true], [datePattern, false]];
   }
-  return [[DATE_PATTERN, false]];
+  return [[datePattern, false]];
 }
 
 export interface UseDateParsingOptions {
   formatDate?: (date: Date, locale?: Locale) => string;
   parseDate?: (str: string, locale?: Locale) => Date | null;
+  /** date-fns pattern for the date half of a field. Defaults to `yyyy-MM-dd`. */
+  datePattern?: string;
   locale?: Locale;
   timePrecision?: TimePrecision;
 }
@@ -60,15 +70,21 @@ export interface DateParsing {
 
 /** Provides `format` (Date -> string) and `parse` (string -> ParsedDate|null). */
 export function useDateParsing(opts: UseDateParsingOptions): DateParsing {
-  const { formatDate, parseDate, locale, timePrecision } = opts;
+  const {
+    formatDate,
+    parseDate,
+    locale,
+    timePrecision,
+    datePattern = DEFAULT_DATE_PATTERN,
+  } = opts;
 
   const format = useCallback(
     (date: Date | null): string => {
       if (!date) return '';
       if (formatDate) return formatDate(date, locale);
-      return dfFormat(date, patternFor(timePrecision), { locale });
+      return dfFormat(date, patternFor(datePattern, timePrecision), { locale });
     },
-    [formatDate, locale, timePrecision],
+    [formatDate, locale, timePrecision, datePattern],
   );
 
   const parse = useCallback(
@@ -81,13 +97,13 @@ export function useDateParsing(opts: UseDateParsingOptions): DateParsing {
         const custom = parseDate(str, locale);
         return custom ? { date: custom, hasTime: true } : null;
       }
-      for (const [pattern, hasTime] of patternLadder(timePrecision)) {
+      for (const [pattern, hasTime] of patternLadder(datePattern, timePrecision)) {
         const parsed = dfParse(str, pattern, new Date(), { locale });
         if (isValid(parsed)) return { date: parsed, hasTime };
       }
       return null;
     },
-    [parseDate, locale, timePrecision],
+    [parseDate, locale, timePrecision, datePattern],
   );
 
   return { format, parse };

@@ -340,8 +340,30 @@ whatever hour you last dialled in. A boundary with no date yet shows its time
 fields disabled: there is no clock to edit until a day exists, and editing one
 would have to invent the day too.
 
-`formatDate` / `parseDate` still override the pattern completely, and a
-`parseDate` of your own owns the time in whatever it returns.
+### Date order and separator
+
+The fields default to `yyyy-MM-dd`. `datePattern` takes a date-fns pattern for
+the date half instead, and is used both to write the fields and to read them
+back, so display and parsing cannot drift apart:
+
+```tsx
+<DateRangeInput datePattern="dd/MM/yyyy" />           // 20/05/2026
+<DateRangeInput datePattern="dd-MM-yyyy" />           // 20-05-2026
+<DateRangeInput datePattern="dd.MM.yyyy" />           // 20.05.2026
+<DateRangeInput datePattern="MM/dd/yyyy" />           // 05/20/2026
+<DateRangeInput datePattern="dd/MM/yyyy" timePrecision="minute" />
+                                                     // 20/05/2026 09:05
+```
+
+Everything above still holds under it: `timePrecision` appends the clock, and
+the forgiveness about an under-specified one survives the change of pattern —
+`20/05/2026` on its own keeps the time that boundary already had.
+
+The clock itself is fixed at `HH:mm(:ss)`, because the time fields beside it are
+numeric 24-hour controls: a 12-hour text pattern would name a clock the picker
+cannot set. For anything `datePattern` cannot express, `formatDate` /
+`parseDate` still override the pattern completely, and a `parseDate` of your own
+owns the time in whatever it returns.
 
 ### Props
 
@@ -361,6 +383,7 @@ so `className`, `style`, `id`, `ref`, `data-*` and `aria-*` all land on it.
 | `timePrecision` | — | `'minute'` or `'second'` to add time fields, and widen the text pattern |
 | `showArrowButtons` | `false` | a step button above and below each time field |
 | `minDate` / `maxDate` / `disabledDays` | — | bounds and exclusions |
+| `datePattern` | `'yyyy-MM-dd'` | date-fns pattern for the date half of the fields |
 | `locale` / `formatDate` / `parseDate` | — | date-fns locale and custom formatting |
 | `container` | `document.body` | node the popover portals into |
 | `classNames` | — | per-slot class overrides |
