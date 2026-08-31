@@ -90,6 +90,27 @@
     --drp-input-text-align: start;
     --drp-input-disabled-bg: var(--drp-input-bg);
 
+    /* ---- input label -----------------------------------------------------
+       The floated label straddles the top border, so it has to paint over it —
+       hence a background rather than a real gap in the line. It follows the
+       field's own background, which is right whenever the field has one. A host
+       whose fields are transparent (Material UI's outlined field is) has to name
+       the surface behind them here, because CSS cannot read it. */
+    --drp-input-label-bg: var(--drp-input-bg);
+    --drp-input-label-fg: var(--drp-muted-fg);
+    --drp-input-label-focus-fg: var(--drp-input-border-focus);
+    --drp-input-label-invalid-fg: var(--drp-invalid-border);
+    --drp-input-label-disabled-fg: var(--drp-disabled-fg);
+    --drp-input-label-font-size: var(--drp-font-size);
+    /* Where the resting label starts: over the placeholder it stands in for. */
+    --drp-input-label-inset: var(--drp-input-padding-x);
+    /* Breathing room either side of the floated label, so the border line stops
+       short of the text rather than touching it. */
+    --drp-input-label-padding-x: 0.25rem;
+    /* Shrunk by transform rather than font-size, so the trip up is animatable.
+       0.75 is the ratio Material UI uses. */
+    --drp-input-label-float-scale: 0.75;
+
     /* ---- separator ------------------------------------------------------ */
     --drp-separator-fg: var(--drp-muted-fg);
 
@@ -210,6 +231,16 @@
     border-width: var(--drp-input-group-border-width-focus);
   }
 
+  /* Positioning context for the label, and nothing else — it takes its size
+     from the field it wraps. `align-self: stretch` is what keeps
+     `--drp-input-height: 100%` working for a host that sizes the group
+     instead of the field. */
+  .drp-input-root {
+    position: relative;
+    display: inline-flex;
+    align-self: stretch;
+  }
+
   .drp-input {
     box-sizing: border-box;
     width: var(--drp-input-width);
@@ -246,6 +277,58 @@
   .drp-input-invalid:focus {
     border-color: var(--drp-invalid-border);
     box-shadow: 0 0 0 var(--drp-focus-ring-width) var(--drp-invalid-ring);
+  }
+
+  /* Resting: standing in for the placeholder, centred in the field. */
+  .drp-input-label {
+    position: absolute;
+    top: 50%;
+    left: var(--drp-input-label-inset);
+    max-width: calc(100% - 2 * var(--drp-input-label-inset));
+    padding: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--drp-input-label-font-size);
+    line-height: 1;
+    color: var(--drp-input-label-fg);
+    background: var(--drp-input-label-bg);
+    /* The label is decoration over a field that already has a click target;
+       clicks have to reach the input under it. Its `for` still focuses the
+       field for anyone using the accessibility tree. */
+    pointer-events: none;
+    transform: translateY(-50%);
+    transform-origin: left center;
+    transition:
+      top var(--drp-transition),
+      left var(--drp-transition),
+      padding var(--drp-transition),
+      color var(--drp-transition),
+      transform var(--drp-transition);
+  }
+  /* Floated: centred on the top border line.
+     `transform-origin: left center` holds the vertical centre through the
+     scale, and the -50% then drops that centre onto `top: 0` — the border.
+     `left` steps back by the padding so the text stays in the column it rested
+     in rather than sliding right. */
+  .drp-input-label-floating {
+    top: 0;
+    left: calc(var(--drp-input-label-inset) - var(--drp-input-label-padding-x));
+    padding: 0 var(--drp-input-label-padding-x);
+    transform: translateY(-50%) scale(var(--drp-input-label-float-scale));
+  }
+
+  /* State colours, in the order they have to settle: an invalid field is
+     invalid whether or not it has focus, and a disabled one is neither. All
+     three are single-class + :has, so source order is the tie-break. */
+  .drp-input-root:has(.drp-input:focus) .drp-input-label {
+    color: var(--drp-input-label-focus-fg);
+  }
+  .drp-input-root:has(.drp-input-invalid) .drp-input-label {
+    color: var(--drp-input-label-invalid-fg);
+  }
+  .drp-input-root:has(.drp-input:disabled) .drp-input-label {
+    color: var(--drp-input-label-disabled-fg);
   }
 
   .drp-separator {

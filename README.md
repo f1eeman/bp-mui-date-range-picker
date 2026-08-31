@@ -149,6 +149,8 @@ Seeds — set these first; everything else follows.
 | `--drp-input-width` | `auto` |
 | `--drp-input-padding-x` | `0.75rem` |
 | `--drp-input-text-align` | `start` |
+| `--drp-input-label-padding-x` | `0.25rem` |
+| `--drp-input-label-float-scale` | `0.75` |
 | `--drp-popover-shadow` | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
 | `--drp-popover-z-index` | `50` |
 | `--drp-panel-padding` | `0.75rem` |
@@ -187,6 +189,13 @@ Part tokens — each defaults to a seed, override one to disagree with a detail.
 | `--drp-input-border-width-focus` | `var(--drp-input-border-width)` |
 | `--drp-input-radius` | `var(--drp-radius)` |
 | `--drp-input-disabled-bg` | `var(--drp-input-bg)` |
+| `--drp-input-label-bg` | `var(--drp-input-bg)` |
+| `--drp-input-label-fg` | `var(--drp-muted-fg)` |
+| `--drp-input-label-focus-fg` | `var(--drp-input-border-focus)` |
+| `--drp-input-label-invalid-fg` | `var(--drp-invalid-border)` |
+| `--drp-input-label-disabled-fg` | `var(--drp-disabled-fg)` |
+| `--drp-input-label-font-size` | `var(--drp-font-size)` |
+| `--drp-input-label-inset` | `var(--drp-input-padding-x)` |
 | `--drp-separator-fg` | `var(--drp-muted-fg)` |
 | `--drp-popover-bg` | `var(--drp-bg)` |
 | `--drp-popover-fg` | `var(--drp-fg)` |
@@ -244,6 +253,9 @@ for.
 
 See the `Slot` type for the full list. `day` is the day button; `dayCell` is the
 table cell around it, and that is what carries the size of the grid.
+`inputLabelFloating` is the same kind of pair for the label: `inputLabel` is the
+element, and the floating class is added alongside it while the label is up on
+the border.
 
 ## Usage
 
@@ -263,6 +275,47 @@ function Example() {
   );
 }
 ```
+
+### Labels
+
+`label` captions each field. A label rests over its field, where the placeholder
+would print, and floats up onto the top border once there is something to
+caption — the field has focus, or it already holds text. That is the shape a
+Material UI outlined field draws, and it is the reason the border has a notch in
+it:
+
+```tsx
+<DateRangeInput
+  label={{ start: 'Start date', end: 'End date' }}
+  placeholder={{ start: 'yyyy-mm-dd', end: 'yyyy-mm-dd' }}
+/>
+```
+
+Both at once is fine. The placeholder waits until the label has floated out of
+its way, so the two never print on top of each other — an empty unfocused field
+shows `Start date`, and the same field focused shows `Start date` on the border
+with `yyyy-mm-dd` underneath it.
+
+The notch is painted, not cut: the floated label covers the border line with
+`--drp-input-label-bg`, which follows `--drp-input-bg`. That is right whenever
+the field has a background of its own. **If your fields are transparent, name
+the surface behind them:**
+
+```css
+:root {
+  --drp-input-bg: transparent;
+  --drp-input-label-bg: #ffffff; /* the page, in this case */
+}
+```
+
+CSS cannot read what is painted behind an element, so this is the one thing a
+token has to be told. Everything else follows the field: the label takes
+`--drp-input-border-focus` on focus and `--drp-invalid-border` when the field
+goes invalid, both overridable on their own (`--drp-input-label-focus-fg`,
+`--drp-input-label-invalid-fg`).
+
+Each field is wrapped in an `inputRoot` element — that is what the label is
+positioned against — and it renders whether or not you pass a label.
 
 ### Shortcuts
 
@@ -407,6 +460,7 @@ so `className`, `style`, `id`, `ref`, `data-*` and `aria-*` all land on it.
 | `numberOfMonths` | `2` | how many months to show |
 | `linkedNavigation` | `true` | one grid stepping together, or independent grids |
 | `separator` | `'—'` | node between the fields; `null` removes it |
+| `label` | — | caption per field, floating onto the border on focus |
 | `shortcuts` | `false` | `true` for the built-in presets, or your own list |
 | `closeOnSelection` | `false` | close once a complete range is picked |
 | `allowSingleDayRange` | `false` | treat a single day as a complete range |

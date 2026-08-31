@@ -28,8 +28,8 @@ export interface Shortcut {
  * docs/adr/0003.
  */
 export type Slot =
-  | 'root' | 'inputGroup' | 'input' | 'inputStart' | 'inputEnd'
-  | 'inputInvalid' | 'separator'
+  | 'root' | 'inputGroup' | 'inputRoot' | 'input' | 'inputStart' | 'inputEnd'
+  | 'inputInvalid' | 'inputLabel' | 'inputLabelFloating' | 'separator'
   | 'popover' | 'panel'
   | 'shortcutsPanel' | 'shortcut' | 'shortcutActive'
   | 'calendar' | 'months' | 'month' | 'caption'
@@ -132,6 +132,16 @@ export interface DateRangeInputProps
 
   disabled?: boolean;
   placeholder?: { start?: string; end?: string };
+  /**
+   * Caption for each field. Each one rests over its field like a placeholder
+   * while the field is empty and unfocused, then floats up onto the top border
+   * — the shape a Material UI outlined field draws.
+   *
+   * A field with both a label and a placeholder shows the placeholder only once
+   * the label has floated out of its way, so the two never print on top of each
+   * other.
+   */
+  label?: { start?: string; end?: string };
   /**
    * Node between the two fields. Defaults to an em dash. Anything renderable
    * works — an arrow, an icon, or `null` to drop it.

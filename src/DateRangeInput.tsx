@@ -43,7 +43,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
       shortcuts, timePrecision, showArrowButtons,
       closeOnSelection = false,
       open: openProp, defaultOpen = false, onOpenChange,
-      disabled, placeholder, separator = '—',
+      disabled, placeholder, label, separator = '—',
       classNames, container,
       className, ...rest
     } = props;
@@ -155,6 +155,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
           onCommit={(d) => state.setBoundary('start', d)}
           onFocus={() => setOpen(true)}
           placeholder={placeholder?.start}
+          label={label?.start}
           disabled={disabled}
           validate={(d) => validateBoundary('start', d)}
           applyMissingTime={missingTimeFor('start')}
@@ -170,6 +171,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
           onCommit={(d) => state.setBoundary('end', d)}
           onFocus={() => setOpen(true)}
           placeholder={placeholder?.end}
+          label={label?.end}
           disabled={disabled}
           validate={(d) => validateBoundary('end', d)}
           applyMissingTime={missingTimeFor('end')}

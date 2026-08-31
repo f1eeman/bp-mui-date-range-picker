@@ -100,6 +100,71 @@ describe('DateInputField', () => {
   });
 });
 
+function HarnessWithLabel({
+  value = null,
+  disabled,
+}: {
+  value?: Date | null;
+  disabled?: boolean;
+}) {
+  const parsing = useDateParsing({});
+  return (
+    <DateInputField
+      value={value}
+      parsing={parsing}
+      onCommit={() => {}}
+      onFocus={() => {}}
+      placeholder="yyyy-mm-dd"
+      label="Start date"
+      disabled={disabled}
+    />
+  );
+}
+
+describe('DateInputField with a label', () => {
+  it('names the field, so the label focuses it and queries find it by name', async () => {
+    render(<HarnessWithLabel />);
+    const input = screen.getByLabelText('Start date');
+    await userEvent.click(screen.getByText('Start date'));
+    expect(input).toHaveFocus();
+  });
+
+  it('rests over the field while it is empty and unfocused', () => {
+    render(<HarnessWithLabel />);
+    expect(screen.getByText('Start date')).not.toHaveClass('drp-input-label-floating');
+  });
+
+  it('floats on focus and drops back on blur', async () => {
+    render(<HarnessWithLabel />);
+    await userEvent.click(screen.getByLabelText('Start date'));
+    expect(screen.getByText('Start date')).toHaveClass('drp-input-label-floating');
+    await userEvent.tab();
+    expect(screen.getByText('Start date')).not.toHaveClass('drp-input-label-floating');
+  });
+
+  it('stays floated after blur when the field kept text', async () => {
+    render(<HarnessWithLabel />);
+    await userEvent.type(screen.getByLabelText('Start date'), '2026-05-20');
+    await userEvent.tab();
+    expect(screen.getByText('Start date')).toHaveClass('drp-input-label-floating');
+  });
+
+  it('starts floated when the field is rendered with a value', () => {
+    render(<HarnessWithLabel value={new Date(2026, 4, 20)} />);
+    expect(screen.getByText('Start date')).toHaveClass('drp-input-label-floating');
+  });
+
+  it('holds the placeholder back until the label has floated out of its way', async () => {
+    // Both print in the same spot. A field showing them at once reads as
+    // duplicated text rather than as a caption over a hint.
+    render(<HarnessWithLabel />);
+    const input = screen.getByLabelText('Start date');
+    expect(input).not.toHaveAttribute('placeholder');
+    await userEvent.click(input);
+    expect(input).toHaveAttribute('placeholder', 'yyyy-mm-dd');
+  });
+});
+
 function HarnessWithTime({
   onCommit,
   applyMissingTime,

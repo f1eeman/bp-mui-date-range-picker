@@ -76,6 +76,13 @@
   --drp-input-border-width-focus: 2px;
   --drp-focus-ring-width: 0;
 
+  /* Material UI's outlined field is transparent and takes the page as its
+     surface — which is also what the floated label has to paint over to notch
+     the border, and the one thing CSS cannot work out on its own. */
+  --drp-input-bg: transparent;
+  --drp-input-label-bg: #ffffff;
+  --drp-input-label-fg: var(--drp-muted-fg);
+
   --drp-day-radius: 50%;
   --drp-day-range-bg: #e8f2ff;
   --drp-day-range-fg: var(--drp-fg);
@@ -106,6 +113,9 @@
   --drp-popover-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   --drp-day-range-bg: #1c2c4a;
   --drp-day-range-fg: var(--drp-fg);
+  /* The page, not --drp-bg: the fields are transparent, so the label notches
+     the border against whatever the body is painted. */
+  --drp-input-label-bg: #0c131d;
 }
 
 /* The page itself follows the skin, so the component is judged against the

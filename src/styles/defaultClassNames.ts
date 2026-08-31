@@ -5,10 +5,13 @@ import type { Slot } from '../types';
 export const defaultClassNames: Record<Slot, string> = {
   root: 'drp-root',
   inputGroup: 'drp-input-group',
+  inputRoot: 'drp-input-root',
   input: 'drp-input',
   inputStart: 'drp-input-start',
   inputEnd: 'drp-input-end',
   inputInvalid: 'drp-input-invalid',
+  inputLabel: 'drp-input-label',
+  inputLabelFloating: 'drp-input-label-floating',
   separator: 'drp-separator',
   popover: 'drp-popover',
   panel: 'drp-panel',

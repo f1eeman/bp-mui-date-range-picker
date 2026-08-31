@@ -18,6 +18,23 @@ describe('DateRangeInput', () => {
     expect(screen.getByPlaceholderText('to')).toBeInTheDocument();
   });
 
+  it('captions each field with its own label, and floats the focused one', async () => {
+    render(
+      <DateRangeInput
+        label={{ start: 'From', end: 'To' }}
+        placeholder={{ start: 'yyyy-mm-dd', end: 'yyyy-mm-dd' }}
+      />,
+    );
+    // Both fields carry the same placeholder here, so the label is the only
+    // thing telling them apart — which is the point of the prop.
+    const from = screen.getByLabelText('From');
+    expect(screen.getByLabelText('To')).not.toBe(from);
+
+    await userEvent.click(from);
+    expect(screen.getByText('From')).toHaveClass('drp-input-label-floating');
+    expect(screen.getByText('To')).not.toHaveClass('drp-input-label-floating');
+  });
+
   it('opens the calendar popover on focus', async () => {
     render(<DateRangeInput placeholder={{ start: 'from', end: 'to' }} />);
     await userEvent.click(screen.getByPlaceholderText('from'));

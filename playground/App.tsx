@@ -130,6 +130,13 @@ export function App() {
         rather than a value.
       </p>
 
+      <p className="text-sm opacity-70">
+        `label` captions each field. It rests over the field while that field is
+        empty and unfocused, then floats onto the top border — so the
+        placeholder below only prints once the label is out of its way. The
+        material skin is where to judge it.
+      </p>
+
       <DateRangeInput
         value={range}
         onChange={setRange}
@@ -137,7 +144,8 @@ export function App() {
         linkedNavigation={linked}
         onOpenChange={(open) => open && setOpenCount((n) => n + 1)}
         shortcuts
-        placeholder={{ start: 'Start date', end: 'End date' }}
+        label={{ start: 'Start date', end: 'End date' }}
+        placeholder={{ start: 'yyyy-mm-dd', end: 'yyyy-mm-dd' }}
         {...extra}
       />
 
@@ -212,7 +220,7 @@ export function App() {
         linkedNavigation={timedLinked}
         showArrowButtons={showArrowButtons}
         shortcuts
-        placeholder={{ start: 'Start', end: 'End' }}
+        label={{ start: 'Start', end: 'End' }}
       />
       <pre className="rounded bg-zinc-100 p-3 text-sm">
         {JSON.stringify(timed.map((d) => d?.toISOString() ?? null), null, 2)}
@@ -263,7 +271,7 @@ export function App() {
               timePrecision={timePrecision}
               numberOfMonths={patternMonths}
               linkedNavigation={patternLinked}
-              placeholder={{ start: 'From', end: 'To' }}
+              label={{ start: 'From', end: 'To' }}
             />
           </div>
         ))}
@@ -271,7 +279,7 @@ export function App() {
 
       <h2 className="text-lg font-medium">Slot overrides</h2>
       <DateRangeInput
-        placeholder={{ start: 'From', end: 'To' }}
+        label={{ start: 'From', end: 'To' }}
         classNames={{
           input: 'rounded-lg border-zinc-300 focus:ring-2 focus:ring-emerald-500',
           daySelected: 'bg-emerald-600 text-white',
@@ -292,7 +300,7 @@ export function App() {
         style={{ '--drp-accent': '#db2777', '--drp-radius': '12px' } as CSSProperties}
       >
         <DateRangeInput
-          placeholder={{ start: 'From', end: 'To' }}
+          label={{ start: 'From', end: 'To' }}
           container={scope}
           shortcuts
         />
@@ -302,7 +310,7 @@ export function App() {
       {/* `style` now lands on the component's own root, so a one-off retheme
           needs no extra element. */}
       <DateRangeInput
-        placeholder={{ start: 'From', end: 'To' }}
+        label={{ start: 'From', end: 'To' }}
         data-testid="inline-themed"
         style={
           {
