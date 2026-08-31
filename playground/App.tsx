@@ -15,6 +15,22 @@ const skinProps: Record<Skin, { separator?: string; numberOfMonths?: number }> =
   material: {},
 };
 
+/**
+ * One row per pattern in the Date pattern section. The prop is the only
+ * difference between the rows, and they share a value — so the same two days
+ * read differently in each, which is the whole point of the prop.
+ */
+const DATE_PATTERNS: { pattern: string; timePrecision?: TimePrecision }[] = [
+  { pattern: 'yyyy-MM-dd' },
+  { pattern: 'dd/MM/yyyy' },
+  { pattern: 'dd-MM-yyyy' },
+  { pattern: 'dd.MM.yyyy' },
+  { pattern: 'MM/dd/yyyy' },
+  { pattern: 'dd MMM yyyy' },
+  { pattern: 'dd/MM/yyyy', timePrecision: 'minute' },
+  { pattern: 'dd.MM.yyyy', timePrecision: 'second' },
+];
+
 export function App() {
   const [range, setRange] = useState<DateRange>([null, null]);
   const [months, setMonths] = useState(2);
@@ -28,7 +44,19 @@ export function App() {
   const [scope, setScope] = useState<HTMLDivElement | null>(null);
   const [timed, setTimed] = useState<DateRange>([null, null]);
   const [precision, setPrecision] = useState<TimePrecision>('minute');
+  const [datePattern, setDatePattern] = useState('yyyy-MM-dd');
   const [showArrowButtons, setShowArrowButtons] = useState(true);
+  // Per-section rather than shared with the one up top, so toggling it here
+  // does not silently repage a calendar somewhere else on the page.
+  const [timedLinked, setTimedLinked] = useState(true);
+  const [timedMonths, setTimedMonths] = useState(2);
+  const [patternLinked, setPatternLinked] = useState(true);
+  const [patternMonths, setPatternMonths] = useState(2);
+  // Seeded, so every row below shows its shape without anything being typed.
+  const [patterned, setPatterned] = useState<DateRange>(() => [
+    new Date(2026, 4, 20, 9, 5),
+    new Date(2026, 5, 3, 18, 30, 45),
+  ]);
 
   // On <html>, so the portalled popover inherits the tokens the same way it
   // would in a host that declares them at :root. Nothing is forwarded to it.
@@ -135,6 +163,39 @@ export function App() {
         </select>
       </label>
       <label className="flex items-center gap-2 text-sm">
+        Date pattern
+        <select
+          className="rounded border px-2 py-1"
+          value={datePattern}
+          onChange={(e) => setDatePattern(e.target.value)}
+        >
+          <option value="yyyy-MM-dd">yyyy-MM-dd</option>
+          <option value="dd/MM/yyyy">dd/MM/yyyy</option>
+          <option value="dd-MM-yyyy">dd-MM-yyyy</option>
+          <option value="dd.MM.yyyy">dd.MM.yyyy</option>
+          <option value="MM/dd/yyyy">MM/dd/yyyy</option>
+        </select>
+      </label>
+      <label className="flex items-center gap-2 text-sm">
+        Months
+        <input
+          className="w-16 rounded border px-2 py-1"
+          type="number"
+          min={1}
+          max={3}
+          value={timedMonths}
+          onChange={(e) => setTimedMonths(Number(e.target.value))}
+        />
+      </label>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={!timedLinked}
+          onChange={(e) => setTimedLinked(!e.target.checked)}
+        />
+        Page each month independently
+      </label>
+      <label className="flex items-center gap-2 text-sm">
         <input
           type="checkbox"
           checked={showArrowButtons}
@@ -146,6 +207,9 @@ export function App() {
         value={timed}
         onChange={setTimed}
         timePrecision={precision}
+        datePattern={datePattern}
+        numberOfMonths={timedMonths}
+        linkedNavigation={timedLinked}
         showArrowButtons={showArrowButtons}
         shortcuts
         placeholder={{ start: 'Start', end: 'End' }}
@@ -153,6 +217,57 @@ export function App() {
       <pre className="rounded bg-zinc-100 p-3 text-sm">
         {JSON.stringify(timed.map((d) => d?.toISOString() ?? null), null, 2)}
       </pre>
+
+      <h2 className="text-lg font-medium">Date pattern</h2>
+      <p className="text-sm opacity-70">
+        The fields default to `yyyy-MM-dd`. `datePattern` takes a date-fns
+        pattern instead — it writes the fields and reads them back, so pick a
+        range in any row and type over it to see both directions. All rows share
+        one value.
+      </p>
+      <div className="flex flex-wrap items-center gap-4 text-sm">
+        <label className="flex items-center gap-2">
+          Months
+          <input
+            className="w-16 rounded border px-2 py-1"
+            type="number"
+            min={1}
+            max={3}
+            value={patternMonths}
+            onChange={(e) => setPatternMonths(Number(e.target.value))}
+          />
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={!patternLinked}
+            onChange={(e) => setPatternLinked(!e.target.checked)}
+          />
+          Page each month independently
+        </label>
+      </div>
+      <div className="space-y-3">
+        {DATE_PATTERNS.map(({ pattern, timePrecision }) => (
+          <div
+            key={`${pattern} ${timePrecision ?? ''}`}
+            className="flex flex-wrap items-center gap-x-4 gap-y-1"
+          >
+            <code className="w-80 shrink-0 text-xs opacity-70">
+              datePattern="{pattern}"
+              {timePrecision ? ` timePrecision="${timePrecision}"` : ''}
+            </code>
+            <DateRangeInput
+              value={patterned}
+              onChange={setPatterned}
+              datePattern={pattern}
+              timePrecision={timePrecision}
+              numberOfMonths={patternMonths}
+              linkedNavigation={patternLinked}
+              placeholder={{ start: 'From', end: 'To' }}
+            />
+          </div>
+        ))}
+      </div>
 
       <h2 className="text-lg font-medium">Slot overrides</h2>
       <DateRangeInput
