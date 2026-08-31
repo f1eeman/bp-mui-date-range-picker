@@ -511,6 +511,14 @@
   }
   .drp-day-today {
     font-weight: 600;
+  }
+  /* Weight marks today wherever it falls, but the accent colour only reads on
+     the plain ground. Each fill above pairs a foreground with its own
+     background, and this rule sits after all of them at the same specificity,
+     so unguarded it repainted the number of a selected today in --drp-accent —
+     which is exactly what --drp-day-selected-bg fills that cell with, so the
+     number disappeared into it. */
+  .drp-day-today:not(.drp-day-selected):not(.drp-day-range-start):not(.drp-day-range-end):not(.drp-day-range-middle) {
     color: var(--drp-day-today-fg);
   }
   .drp-day-disabled {

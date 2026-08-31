@@ -99,4 +99,27 @@ describe('styles.css', () => {
     expect(css).toMatch(/\.drp-calendar \{[^}]*color:\s*var\(--drp-popover-fg\)/);
     expect(css).toMatch(/--drp-popover-fg:\s*var\(--drp-fg\)/);
   });
+
+  it("lets a selection fill own the day number's colour, even on today", () => {
+    // .drp-day-today and the selection classes all land on the same cell as
+    // single-class selectors, so equal specificity leaves the cascade to settle
+    // them on source order — and today's rule sits last. Since
+    // --drp-day-today-fg and --drp-day-selected-bg are both --drp-accent, today
+    // as an end of the range was painted in its own background and the number
+    // vanished. Today keeps its weight wherever it falls; its colour applies
+    // only where no fill has already chosen a paired foreground.
+    const rules = [...css.matchAll(/\n {2}([^{}\n]+)\{([^}]*)\}/g)];
+    const todayColour = rules.find(
+      ([, selector, body]) => selector.includes('.drp-day-today') && /(^|;)\s*color:/.test(body),
+    );
+    expect(todayColour).toBeDefined();
+    for (const filled of [
+      'drp-day-selected',
+      'drp-day-range-start',
+      'drp-day-range-end',
+      'drp-day-range-middle',
+    ]) {
+      expect(todayColour![1]).toContain(`:not(.${filled})`);
+    }
+  });
 });
