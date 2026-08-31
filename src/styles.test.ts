@@ -122,4 +122,22 @@ describe('styles.css', () => {
       expect(todayColour![1]).toContain(`:not(.${filled})`);
     }
   });
+
+  it('centres each clock under its own month and rules the divider across the row', () => {
+    // The border-top used to sit on each .drp-time-picker, so the line was only
+    // as wide as one clock and broke in the gap between the two. It belongs to
+    // the row, which spans the calendar column edge to edge.
+    expect(css).toMatch(/\.drp-time-pickers \{[^}]*border-top:/);
+    expect(css).not.toMatch(/\.drp-time-picker \{[^}]*border-top:/);
+    // Alignment comes from mirroring the grid above rather than from centring
+    // the pair: the calendar's padding puts the row's edges where .drp-months
+    // starts, the months' gap divides the clocks where the grids divide, and an
+    // equal share each makes a share exactly one month wide on two months.
+    expect(css).toMatch(/\.drp-time-pickers \{[^}]*padding-inline:\s*var\(--drp-panel-padding\)/);
+    expect(css).toMatch(/\.drp-time-pickers \{[^}]*gap:\s*var\(--drp-months-gap\)/);
+    expect(css).toMatch(/\.drp-time-picker \{[^}]*flex:\s*1;/);
+    expect(css).toMatch(/\.drp-time-picker \{[^}]*align-items:\s*center/);
+    // Neither of these can place a clock over its month, and both used to.
+    expect(css).not.toMatch(/\.drp-time-pickers \{[^}]*justify-content:/);
+  });
 });

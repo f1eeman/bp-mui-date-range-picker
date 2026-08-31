@@ -542,16 +542,29 @@
     visibility: hidden;
   }
 
+  /* The divider belongs to the row rather than to each clock. On the clocks it
+     was only as wide as one of them and broke in the gap between the two; the
+     row spans the calendar column edge to edge.
+
+     The row also mirrors the grid above it — the calendar's padding on the
+     sides, the months' gap between the clocks, and an equal share each — so on
+     the default two months a share is exactly one month wide and each clock
+     centres under the grid it belongs to. The padding is what lines the shares
+     up with the months: .drp-months sits that far in from the same edge. */
   .drp-time-pickers {
     display: flex;
-    justify-content: space-between;
+    gap: var(--drp-months-gap);
+    padding-inline: var(--drp-panel-padding);
+    border-top: 1px solid var(--drp-popover-border-color);
   }
 
+  /* flex-basis 0 with equal growth, so the shares stay equal whatever a clock
+     holds — hours-only and hours-minutes-seconds line up the same. */
   .drp-time-picker {
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
-    border-top: 1px solid var(--drp-popover-border-color);
     padding: 0.5rem;
   }
 
