@@ -1,6 +1,6 @@
 {
   "name": "bp-mui-date-range-picker",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "Date range input for React, themed with CSS custom properties and slot classes, designed to sit inside someone else’s design system",
   "license": "MIT",
   "author": "f1eeman <mr.f1eeman@gmail.com>",
