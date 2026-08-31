@@ -121,8 +121,8 @@ export interface DateRangeInputProps
   disabled?: boolean;
   placeholder?: { start?: string; end?: string };
   /**
-   * Node between the two fields. Defaults to an arrow. Anything renderable
-   * works — a dash, an icon, or `null` to drop it.
+   * Node between the two fields. Defaults to an em dash. Anything renderable
+   * works — an arrow, an icon, or `null` to drop it.
    */
   separator?: ReactNode;
 

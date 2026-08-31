@@ -10,8 +10,8 @@ type Skin = 'default' | 'merged' | 'material';
 /** Everything a skin cannot say in tokens, because it is structure. */
 const skinProps: Record<Skin, { separator?: string; numberOfMonths?: number }> = {
   default: {},
-  // This one draws an em dash between the fields, not an arrow.
-  merged: { separator: '—' },
+  // This one draws an arrow between the fields rather than the default em dash.
+  merged: { separator: '→' },
   material: {},
 };
 
@@ -157,7 +157,6 @@ export function App() {
       <h2 className="text-lg font-medium">Slot overrides</h2>
       <DateRangeInput
         placeholder={{ start: 'From', end: 'To' }}
-        separator="—"
         classNames={{
           input: 'rounded-lg border-zinc-300 focus:ring-2 focus:ring-emerald-500',
           daySelected: 'bg-emerald-600 text-white',

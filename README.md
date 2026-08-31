@@ -354,7 +354,7 @@ so `className`, `style`, `id`, `ref`, `data-*` and `aria-*` all land on it.
 | `open` / `defaultOpen` / `onOpenChange` | `false` | popover state, controlled or not |
 | `numberOfMonths` | `2` | how many months to show |
 | `linkedNavigation` | `true` | one grid stepping together, or independent grids |
-| `separator` | `'→'` | node between the fields; `null` removes it |
+| `separator` | `'—'` | node between the fields; `null` removes it |
 | `shortcuts` | `false` | `true` for the built-in presets, or your own list |
 | `closeOnSelection` | `false` | close once a complete range is picked |
 | `allowSingleDayRange` | `false` | treat a single day as a complete range |

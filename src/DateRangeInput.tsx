@@ -43,7 +43,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
       shortcuts, timePrecision, showArrowButtons,
       closeOnSelection = false,
       open: openProp, defaultOpen = false, onOpenChange,
-      disabled, placeholder, separator = '→',
+      disabled, placeholder, separator = '—',
       classNames, container,
       className, ...rest
     } = props;

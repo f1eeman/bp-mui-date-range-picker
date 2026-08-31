@@ -239,14 +239,16 @@ describe('DateRangeInput', () => {
   });
 
   describe('separator', () => {
-    it('renders an arrow by default', () => {
+    it('renders an em dash by default', () => {
       const { container } = render(<DateRangeInput />);
-      expect(container.querySelector('.drp-separator')?.textContent).toBe('→');
+      expect(container.querySelector('.drp-separator')?.textContent).toBe('—');
     });
 
     it('renders whatever node the host passes', () => {
-      const { container } = render(<DateRangeInput separator="—" />);
-      expect(container.querySelector('.drp-separator')?.textContent).toBe('—');
+      // An arrow — what the default used to be — so the assertion cannot pass
+      // on the default alone.
+      const { container } = render(<DateRangeInput separator="→" />);
+      expect(container.querySelector('.drp-separator')?.textContent).toBe('→');
     });
 
     it('drops the separator entirely for null', () => {
