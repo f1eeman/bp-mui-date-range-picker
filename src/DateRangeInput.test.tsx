@@ -157,8 +157,8 @@ describe('DateRangeInput', () => {
     render(
       <DateRangeInput placeholder={{ start: 'from', end: 'to' }} onChange={onChange} />,
     );
-    await userEvent.type(screen.getByPlaceholderText('from'), '2026-05-10');
-    await userEvent.type(screen.getByPlaceholderText('to'), '2026-05-20');
+    await userEvent.type(screen.getByPlaceholderText('from'), '10-05-2026');
+    await userEvent.type(screen.getByPlaceholderText('to'), '20-05-2026');
     await userEvent.tab();
     expect(onChange.mock.calls.at(-1)![0]).toEqual([
       new Date(2026, 4, 10),
@@ -199,7 +199,7 @@ describe('DateRangeInput', () => {
     );
     const fromInput = screen.getByPlaceholderText('from');
     // Type a date before minDate
-    await userEvent.type(fromInput, '2026-05-01');
+    await userEvent.type(fromInput, '01-05-2026');
     await userEvent.tab();
     expect(onChange).not.toHaveBeenCalled();
     expect(fromInput).toHaveAttribute('aria-invalid', 'true');
@@ -217,8 +217,8 @@ describe('DateRangeInput', () => {
     );
     const fromInput = screen.getByPlaceholderText('from');
     const toInput = screen.getByPlaceholderText('to');
-    await userEvent.type(fromInput, '2026-05-15');
-    await userEvent.type(toInput, '2026-05-20');
+    await userEvent.type(fromInput, '15-05-2026');
+    await userEvent.type(toInput, '20-05-2026');
     await userEvent.tab();
     expect(onChange.mock.calls.at(-1)![0]).toEqual([
       new Date(2026, 4, 15),
@@ -234,10 +234,10 @@ describe('DateRangeInput', () => {
     render(
       <DateRangeInput placeholder={{ start: 'from', end: 'to' }} timePrecision="minute" />,
     );
-    await userEvent.type(screen.getByPlaceholderText('from'), '2026-05-20 09:00{Enter}');
+    await userEvent.type(screen.getByPlaceholderText('from'), '20-05-2026 09:00{Enter}');
     expect(monthsOnScreen()).toEqual(['4/2026', '5/2026']);
 
-    await userEvent.type(screen.getByPlaceholderText('to'), '2026-12-15 18:00{Enter}');
+    await userEvent.type(screen.getByPlaceholderText('to'), '15-12-2026 18:00{Enter}');
     // The end takes the last grid, so the months running up to it stay visible.
     expect(monthsOnScreen()).toEqual(['10/2026', '11/2026']);
   });
@@ -264,7 +264,7 @@ describe('DateRangeInput', () => {
       expect(monthsOnScreen()).toEqual(['7/2027', '8/2027']);
 
       await userEvent.click(screen.getByRole('button', { name: 'This month' }));
-      expect(screen.getByPlaceholderText('from')).toHaveValue('2026-08-01');
+      expect(screen.getByPlaceholderText('from')).toHaveValue('01-08-2026');
       expect(monthsOnScreen()).toEqual(['7/2026', '8/2026']);
     } finally {
       vi.useRealTimers();
@@ -489,7 +489,7 @@ describe('DateRangeInput range order', () => {
       />,
     );
     const to = screen.getByPlaceholderText('to');
-    await userEvent.type(to, '2026-05-05');
+    await userEvent.type(to, '05-05-2026');
     await userEvent.tab();
     expect(to).toHaveAttribute('aria-invalid', 'true');
     expect(onChange).not.toHaveBeenCalled();
@@ -505,7 +505,7 @@ describe('DateRangeInput range order', () => {
       />,
     );
     const from = screen.getByPlaceholderText('from');
-    await userEvent.type(from, '2026-05-20');
+    await userEvent.type(from, '20-05-2026');
     await userEvent.tab();
     expect(from).toHaveAttribute('aria-invalid', 'true');
     expect(onChange).not.toHaveBeenCalled();
@@ -522,7 +522,7 @@ describe('DateRangeInput range order', () => {
       />,
     );
     const to = screen.getByPlaceholderText('to');
-    await userEvent.type(to, '2026-05-10');
+    await userEvent.type(to, '10-05-2026');
     await userEvent.tab();
     expect(to).toHaveAttribute('aria-invalid', 'false');
     expect(onChange.mock.calls.at(-1)![0]).toEqual([new Date(2026, 4, 10), new Date(2026, 4, 10)]);
@@ -587,8 +587,8 @@ describe('DateRangeInput with a time precision', () => {
         defaultValue={[new Date(2026, 4, 10, 9, 5), new Date(2026, 4, 20, 18, 30)]}
       />,
     );
-    expect(screen.getByPlaceholderText('from')).toHaveValue('2026-05-10 09:05');
-    expect(screen.getByPlaceholderText('to')).toHaveValue('2026-05-20 18:30');
+    expect(screen.getByPlaceholderText('from')).toHaveValue('10-05-2026 09:05');
+    expect(screen.getByPlaceholderText('to')).toHaveValue('20-05-2026 18:30');
   });
 
   it('gives each time picker fields named after its boundary', async () => {
@@ -655,7 +655,7 @@ describe('DateRangeInput with a time precision', () => {
     );
     const from = screen.getByPlaceholderText('from');
     await userEvent.clear(from);
-    await userEvent.type(from, '2026-05-15');
+    await userEvent.type(from, '15-05-2026');
     await userEvent.tab();
     expect(onChange.mock.calls.at(-1)![0]).toEqual([
       new Date(2026, 4, 15, 9, 15),

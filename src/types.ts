@@ -76,9 +76,10 @@ export interface DateRangeInputProps
   parseDate?: (str: string, locale?: Locale) => Date | null;
   /**
    * date-fns pattern for the date half of both text fields — `'dd/MM/yyyy'`,
-   * `'dd-MM-yyyy'`, `'dd.MM.yyyy'`, `'MM/dd/yyyy'`, whatever the audience
-   * reads. Defaults to `'yyyy-MM-dd'`. It is used to write the fields and to
-   * read them back, so the two cannot drift apart.
+   * `'dd.MM.yyyy'`, `'MM/dd/yyyy'`, `'yyyy-MM-dd'`, whatever the audience
+   * reads. Defaults to `'dd-MM-yyyy'`: the fields are read by people, and
+   * year-first is the shape of a wire format. It is used to write the fields
+   * and to read them back, so the two cannot drift apart.
    *
    * `timePrecision` appends the clock to it; the clock itself is fixed at
    * `HH:mm(:ss)` because the time fields beside it are numeric 24-hour

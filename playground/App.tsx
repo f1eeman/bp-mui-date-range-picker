@@ -44,7 +44,7 @@ export function App() {
   const [scope, setScope] = useState<HTMLDivElement | null>(null);
   const [timed, setTimed] = useState<DateRange>([null, null]);
   const [precision, setPrecision] = useState<TimePrecision>('minute');
-  const [datePattern, setDatePattern] = useState('yyyy-MM-dd');
+  const [datePattern, setDatePattern] = useState('dd-MM-yyyy');
   const [showArrowButtons, setShowArrowButtons] = useState(true);
   // Per-section rather than shared with the one up top, so toggling it here
   // does not silently repage a calendar somewhere else on the page.
@@ -228,7 +228,7 @@ export function App() {
 
       <h2 className="text-lg font-medium">Date pattern</h2>
       <p className="text-sm opacity-70">
-        The fields default to `yyyy-MM-dd`. `datePattern` takes a date-fns
+        The fields default to `dd-MM-yyyy`. `datePattern` takes a date-fns
         pattern instead — it writes the fields and reads them back, so pick a
         range in any row and type over it to see both directions. All rows share
         one value.

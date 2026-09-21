@@ -54,16 +54,44 @@ describe('DateInputField', () => {
     const onCommit = vi.fn();
     render(<Harness onCommit={onCommit} />);
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, '2026-05-20');
+    await userEvent.type(input, '20-05-2026');
     await userEvent.tab();
     expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20));
   });
 
-  it('marks the field invalid for an unparseable value', async () => {
+  it('refuses characters the pattern could never print', async () => {
+    render(<Harness onCommit={vi.fn()} />);
+    const input = screen.getByPlaceholderText('start');
+    await userEvent.type(input, 'garbage');
+    expect(input).toHaveValue('');
+    await userEvent.type(input, '20-ab05-cd2026');
+    expect(input).toHaveValue('20-05-2026');
+  });
+
+  it('punctuates the date as bare digits are typed', async () => {
     const onCommit = vi.fn();
     render(<Harness onCommit={onCommit} />);
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, 'garbage');
+    await userEvent.type(input, '20052026');
+    expect(input).toHaveValue('20-05-2026');
+    await userEvent.tab();
+    expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20));
+  });
+
+  it('takes the separator back out when the digit in front of it goes', async () => {
+    render(<Harness onCommit={vi.fn()} />);
+    const input = screen.getByPlaceholderText('start');
+    await userEvent.type(input, '2005');
+    expect(input).toHaveValue('20-05');
+    await userEvent.type(input, '{Backspace}{Backspace}');
+    expect(input).toHaveValue('20');
+  });
+
+  it('marks the field invalid for a value that types cleanly but will not parse', async () => {
+    const onCommit = vi.fn();
+    render(<Harness onCommit={onCommit} />);
+    const input = screen.getByPlaceholderText('start');
+    await userEvent.type(input, '99-99-2026');
     await userEvent.tab();
     expect(onCommit).not.toHaveBeenCalled();
     expect(input).toHaveAttribute('aria-invalid', 'true');
@@ -73,7 +101,7 @@ describe('DateInputField', () => {
     const onCommit = vi.fn();
     render(<Harness onCommit={onCommit} />);
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, '2026-05-20{Enter}');
+    await userEvent.type(input, '20-05-2026{Enter}');
     expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20));
   });
 
@@ -84,7 +112,7 @@ describe('DateInputField', () => {
     render(<HarnessWithValidate onCommit={onCommit} validate={validate} />);
     const input = screen.getByPlaceholderText('start');
     // Type a date outside the allowed year
-    await userEvent.type(input, '2025-05-20');
+    await userEvent.type(input, '20-05-2025');
     await userEvent.tab();
     expect(onCommit).not.toHaveBeenCalled();
     expect(input).toHaveAttribute('aria-invalid', 'true');
@@ -95,7 +123,7 @@ describe('DateInputField', () => {
     const validate = (d: Date) => d.getFullYear() === 2026;
     render(<HarnessWithValidate onCommit={onCommit} validate={validate} />);
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, '2026-05-20');
+    await userEvent.type(input, '20-05-2026');
     await userEvent.tab();
     expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20));
     expect(input).not.toHaveAttribute('aria-invalid', 'true');
@@ -105,7 +133,7 @@ describe('DateInputField', () => {
     const onCommit = vi.fn();
     render(<Harness onCommit={onCommit} />);
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, '2026-05-20');
+    await userEvent.type(input, '20-05-2026');
     await userEvent.clear(input);
     await userEvent.tab();
     expect(onCommit).toHaveBeenLastCalledWith(null);
@@ -126,7 +154,7 @@ function HarnessWithLabel({
       parsing={parsing}
       onCommit={() => {}}
       onFocus={() => {}}
-      placeholder="yyyy-mm-dd"
+      placeholder="dd-mm-yyyy"
       label="Start date"
       disabled={disabled}
     />
@@ -156,7 +184,7 @@ describe('DateInputField with a label', () => {
 
   it('stays floated after blur when the field kept text', async () => {
     render(<HarnessWithLabel />);
-    await userEvent.type(screen.getByLabelText('Start date'), '2026-05-20');
+    await userEvent.type(screen.getByLabelText('Start date'), '20-05-2026');
     await userEvent.tab();
     expect(screen.getByText('Start date')).toHaveClass('drp-input-label-floating');
   });
@@ -173,7 +201,7 @@ describe('DateInputField with a label', () => {
     const input = screen.getByLabelText('Start date');
     expect(input).not.toHaveAttribute('placeholder');
     await userEvent.click(input);
-    expect(input).toHaveAttribute('placeholder', 'yyyy-mm-dd');
+    expect(input).toHaveAttribute('placeholder', 'dd-mm-yyyy');
   });
 });
 
@@ -207,7 +235,7 @@ describe('DateInputField with a time precision', () => {
       />,
     );
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, '2026-05-20 14:30');
+    await userEvent.type(input, '20-05-2026 14:30');
     await userEvent.tab();
     expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20, 14, 30));
   });
@@ -220,7 +248,7 @@ describe('DateInputField with a time precision', () => {
       new Date(d.getFullYear(), d.getMonth(), d.getDate(), 9, 15);
     render(<HarnessWithTime onCommit={onCommit} applyMissingTime={applyMissingTime} />);
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, '2026-05-20');
+    await userEvent.type(input, '20-05-2026');
     await userEvent.tab();
     expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20, 9, 15));
   });
@@ -229,7 +257,7 @@ describe('DateInputField with a time precision', () => {
     const onCommit = vi.fn();
     render(<HarnessWithTime onCommit={onCommit} />);
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, '2026-05-20');
+    await userEvent.type(input, '20-05-2026');
     await userEvent.tab();
     expect(onCommit).toHaveBeenCalledWith(new Date(2026, 4, 20));
   });
@@ -250,7 +278,7 @@ describe('DateInputField with a time precision', () => {
     );
     render(parsingHarness);
     const input = screen.getByPlaceholderText('start');
-    await userEvent.type(input, '2026-05-20');
+    await userEvent.type(input, '20-05-2026');
     await userEvent.tab();
     expect(seen).toEqual([new Date(2026, 4, 20, 23, 59)]);
   });

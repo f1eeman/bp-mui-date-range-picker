@@ -469,13 +469,14 @@ If you relied on the swap, order the range yourself before handing it in — a
 
 ### Date order and separator
 
-The fields default to `yyyy-MM-dd`. `datePattern` takes a date-fns pattern for
-the date half instead, and is used both to write the fields and to read them
-back, so display and parsing cannot drift apart:
+The fields default to `dd-MM-yyyy` — day first, because a text field is read by
+a person, whereas `yyyy-MM-dd` is the shape a wire format takes. `datePattern`
+takes a date-fns pattern for the date half instead, and is used both to write
+the fields and to read them back, so display and parsing cannot drift apart:
 
 ```tsx
 <DateRangeInput datePattern="dd/MM/yyyy" />           // 20/05/2026
-<DateRangeInput datePattern="dd-MM-yyyy" />           // 20-05-2026
+<DateRangeInput datePattern="yyyy-MM-dd" />           // 2026-05-20
 <DateRangeInput datePattern="dd.MM.yyyy" />           // 20.05.2026
 <DateRangeInput datePattern="MM/dd/yyyy" />           // 05/20/2026
 <DateRangeInput datePattern="dd/MM/yyyy" timePrecision="minute" />
@@ -511,7 +512,7 @@ so `className`, `style`, `id`, `ref`, `data-*` and `aria-*` all land on it.
 | `timePrecision` | — | `'minute'` or `'second'` to add time fields, and widen the text pattern |
 | `showArrowButtons` | `false` | a step button above and below each time field |
 | `minDate` / `maxDate` / `disabledDays` | — | bounds and exclusions |
-| `datePattern` | `'yyyy-MM-dd'` | date-fns pattern for the date half of the fields |
+| `datePattern` | `'dd-MM-yyyy'` | date-fns pattern for the date half of the fields |
 | `locale` / `formatDate` / `parseDate` | — | date-fns locale and custom formatting |
 | `container` | `document.body` | node the popover portals into |
 | `classNames` | — | per-slot class overrides |

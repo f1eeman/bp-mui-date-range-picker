@@ -1,4 +1,11 @@
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from 'react';
 import type { ClassNames, Slot } from '../types';
 import type { DateParsing } from '../hooks/useDateParsing';
 import { mergeSlot } from '../utils/mergeClassNames';
@@ -37,6 +44,20 @@ export interface DateInputFieldProps {
   classNames?: ClassNames;
 }
 
+/**
+ * Where the caret belongs in `masked` for someone who was standing behind the
+ * `digits`th digit of what they typed. Counting digits rather than characters
+ * is what survives the separators the mask inserts and removes.
+ */
+function caretAfterDigit(masked: string, digits: number): number {
+  if (digits <= 0) return 0;
+  let seen = 0;
+  for (let i = 0; i < masked.length; i++) {
+    if (/\d/.test(masked[i]!) && ++seen === digits) return i + 1;
+  }
+  return masked.length;
+}
+
 /** A single text field that parses its value into a Date on blur / Enter. */
 export function DateInputField({
   value, parsing, onCommit, onFocus,
@@ -55,6 +76,18 @@ export function DateInputField({
   // would re-run the effect and reformat away the text the field is marking
   // invalid.
   const [hasFocus, setHasFocus] = useState(false);
+
+  // The mask rewrites the value under the caret, and a controlled input drops
+  // the caret to the end on every such rewrite. These two put it back, and only
+  // for an edit the user made — an external `value` change leaves them alone.
+  const inputRef = useRef<HTMLInputElement>(null);
+  const caretAfterEdit = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (caretAfterEdit.current === null) return;
+    inputRef.current?.setSelectionRange(caretAfterEdit.current, caretAfterEdit.current);
+    caretAfterEdit.current = null;
+  }, [text]);
 
   const inputId = useId();
   // Floated whenever there is something to caption — focus, or text already in
@@ -121,6 +154,7 @@ export function DateInputField({
       )}
       <input
         id={inputId}
+        ref={inputRef}
         type="text"
         // A date field must never offer the browser's saved-input list: it
         // drops over the calendar this same field has just opened. Not a prop,
@@ -138,7 +172,19 @@ export function DateInputField({
         readOnly={readOnly}
         aria-invalid={invalid}
         className={className}
-        onChange={(e) => setText(e.target.value)}
+        // Masked rather than validated: a character the pattern could never
+        // print is a keystroke that missed, and punctuating as the digits land
+        // beats making someone type separators the field already knows about.
+        // Parse still runs on commit — a well-formed-looking `99-99-2026` gets
+        // through here and is caught there.
+        onChange={(e) => {
+          const typed = e.target.value;
+          const caret = e.target.selectionStart ?? typed.length;
+          const digitsBehindCaret = typed.slice(0, caret).replace(/\D/g, '').length;
+          const masked = parsing.mask(typed);
+          caretAfterEdit.current = caretAfterDigit(masked, digitsBehindCaret);
+          setText(masked);
+        }}
         onFocus={() => {
           focused.current = true;
           setHasFocus(true);
