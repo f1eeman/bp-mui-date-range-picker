@@ -11,10 +11,13 @@ it and never assumes it is the only stylesheet on the page.
 
 Two reference hosts define what "flexible enough" means, and they disagree on
 almost everything: one on React 18, Material UI 6 and Tailwind 3, themed with
-plain `:root` custom properties, light only, no cascade layers; the other on
-React 19, Material UI 7 and Tailwind 4, themed from a CSS-variable palette,
-light and dark, with a strict layer order. A change that only satisfies one of
-them has not satisfied the requirement.
+plain `:root` custom properties, light only, and declaring a layer order of
+exactly two names — Tailwind's preflight and `bp-drp` — because Tailwind 3
+emits preflight unlayered and it otherwise outranks the whole package; the
+other on React 19, Material UI 7 and Tailwind 4, themed from a CSS-variable
+palette, light and dark, with a layer order of its own for everything it
+loads. A change that only satisfies one of them has not satisfied the
+requirement.
 
 ## Reference host
 
