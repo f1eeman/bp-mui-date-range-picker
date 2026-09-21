@@ -1,0 +1,9 @@
+# Line endings belong to the repository, not to whoever cloned it. Without
+# this the answer comes from each machine's `core.autocrlf`, so a contributor
+# whose git is set differently commits CRLF into files that are LF here — and
+# the mixture lands inside single files, where it reads as a whole-file rewrite
+# in every later diff.
+#
+# `eol=lf` also matches what the toolchain already assumes: `newLine: "lf"` in
+# tsconfig.json.
+* text=auto eol=lf
