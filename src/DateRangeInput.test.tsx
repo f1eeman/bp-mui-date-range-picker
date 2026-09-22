@@ -3,6 +3,7 @@ import { createRef } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DateRangeInput } from './DateRangeInput';
+import type { DateRange } from './types';
 
 /** The month/year each grid on screen is showing, left to right. */
 const monthsOnScreen = () =>
@@ -553,11 +554,14 @@ describe('DateRangeInput range order', () => {
     expect(hours).toHaveValue(9);
   });
 
-  it('orders the clocks a single calendar click carries onto one day', async () => {
-    // The clocks here are inherited, not chosen: one click puts both ends on the
-    // same day, and a start that carried 18:00 beside an end that carried 09:00
-    // would reverse the range. Refusing a click is worse than ordering what it
-    // inherited.
+  it('carries the clocks through an end being moved', async () => {
+    // A day clicked in the calendar arrives at midnight, so without carrying,
+    // moving an end by a day would silently wipe the time set on it.
+    //
+    // Ordering those carried clocks is `swapIfNeeded`'s job, and its own tests
+    // cover it: the case needs both ends on one day, which a calendar click can
+    // no longer produce. Every click either widens the range, narrows it, or
+    // takes hold of an end — none of them flattens it.
     const onChange = vi.fn();
     render(
       <DateRangeInput
@@ -568,13 +572,206 @@ describe('DateRangeInput range order', () => {
       />,
     );
     await userEvent.click(screen.getByPlaceholderText('from'));
-    // Clicking the day a boundary already sits on is what collapses the range
-    // onto one day, which is when the carried clocks can reverse it.
-    await userEvent.click(screen.getAllByText('20')[0]);
+    await userEvent.click(screen.getAllByText('25')[0]);
+    await userEvent.click(screen.getAllByText('27')[0]);
     const [start, end] = onChange.mock.calls.at(-1)![0];
-    expect(start!.getTime()).toBeLessThanOrEqual(end!.getTime());
-    expect([start!.getDate(), end!.getDate()]).toEqual([20, 20]);
-    expect([start!.getHours(), end!.getHours()]).toEqual([9, 18]);
+    expect([start!.getDate(), end!.getDate()]).toEqual([20, 27]);
+    expect([start!.getHours(), end!.getHours()]).toEqual([18, 9]);
+  });
+});
+
+describe('DateRangeInput moving one end of a finished range', () => {
+  // Blueprint's behaviour, and the reason it is worth copying: nudging one end
+  // of a range by a day otherwise meant rebuilding the range from scratch.
+  const props = {
+    placeholder: { start: 'from', end: 'to' },
+    defaultValue: [new Date(2026, 4, 15), new Date(2026, 4, 22)] as DateRange,
+  };
+
+  it('takes hold of the start without settling anything', async () => {
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+
+    // Taking hold changes nothing: the fields still read the range they did.
+    await userEvent.click(screen.getAllByText('15')[0]);
+    expect(screen.getByPlaceholderText('from')).toHaveValue('15-05-2026');
+    expect(screen.getByPlaceholderText('to')).toHaveValue('22-05-2026');
+
+    await userEvent.click(screen.getAllByText('10')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 10),
+      new Date(2026, 4, 22),
+    ]);
+  });
+
+  it('moves the start past a day rdp would have treated as widening', async () => {
+    // Without the pick-up, clicking 15 and then 18 narrowed the range to 15–18,
+    // because every click after a finished range is measured against its ends.
+    // Held, the second click is a new start instead.
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('15')[0]);
+    await userEvent.click(screen.getAllByText('18')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 18),
+      new Date(2026, 4, 22),
+    ]);
+  });
+
+  it('moves the end when the end is the one picked up', async () => {
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('22')[0]);
+    await userEvent.click(screen.getAllByText('27')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 15),
+      new Date(2026, 4, 27),
+    ]);
+  });
+
+  it('swaps the ends when one is dragged past the other', async () => {
+    // Dropping the start after the end draws a range from the old end to the
+    // day just clicked. Refusing instead reads as a dead click, and there is no
+    // ambiguity about the range the cursor drew — only about which end is which,
+    // which the dates answer themselves.
+    //
+    // A date *typed* into a field is still refused: there the two ends were
+    // named separately, and one of them is simply wrong.
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('15')[0]);
+    await userEvent.click(screen.getAllByText('27')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 22),
+      new Date(2026, 4, 27),
+    ]);
+  });
+
+  it('keeps hold of the same end for the clicks that follow', async () => {
+    // Landing a start where it was meant takes more than one try as often as
+    // not. Letting go after the first click would send the second one to the
+    // other end, and the range would flip-flop instead of settling.
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('15')[0]);
+
+    await userEvent.click(screen.getAllByText('10')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 10),
+      new Date(2026, 4, 22),
+    ]);
+
+    await userEvent.click(screen.getAllByText('5')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 5),
+      new Date(2026, 4, 22),
+    ]);
+
+    // A day inside the range would have been read as the end without the hold,
+    // since that is where rdp measures it to.
+    await userEvent.click(screen.getAllByText('18')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 18),
+      new Date(2026, 4, 22),
+    ]);
+  });
+
+  it('clears the range when both ends are touched in turn', async () => {
+    // Reaching for the second end while holding the first is not an adjustment
+    // of either — it is marking out the range that is there and starting over.
+    // It is also the only way to clear a range from the calendar alone.
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+
+    await userEvent.click(screen.getAllByText('15')[0]);
+    await userEvent.click(screen.getAllByText('22')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([null, null]);
+    expect(screen.getByPlaceholderText('from')).toHaveValue('');
+    expect(screen.getByPlaceholderText('to')).toHaveValue('');
+
+    // And the calendar is free again: the next two clicks draw a fresh range.
+    await userEvent.click(screen.getAllByText('10')[0]);
+    await userEvent.click(screen.getAllByText('18')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 10),
+      new Date(2026, 4, 18),
+    ]);
+  });
+
+  it('keeps hold when the same end is clicked again', async () => {
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+
+    await userEvent.click(screen.getAllByText('15')[0]);
+    await userEvent.click(screen.getAllByText('15')[0]);
+    await userEvent.click(screen.getAllByText('10')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 10),
+      new Date(2026, 4, 22),
+    ]);
+  });
+
+  it('follows the day rather than the label when the ends swap', async () => {
+    // Dragging a start past the end leaves the cursor holding what is now the
+    // end, so the click after it goes on adjusting that.
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('15')[0]);
+
+    await userEvent.click(screen.getAllByText('27')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 22),
+      new Date(2026, 4, 27),
+    ]);
+
+    await userEvent.click(screen.getAllByText('30')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 22),
+      new Date(2026, 4, 30),
+    ]);
+  });
+
+  it('swaps the other way when the end is dragged before the start', async () => {
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('22')[0]);
+    await userEvent.click(screen.getAllByText('8')[0]);
+    expect(onChange.mock.calls.at(-1)![0]).toEqual([
+      new Date(2026, 4, 8),
+      new Date(2026, 4, 15),
+    ]);
+  });
+
+  it('lets go when a shortcut settles the range instead', async () => {
+    // A shortcut is a whole range arriving at once, which answers the question
+    // the held end was waiting on. Left held, the click after it would have
+    // been read as the second half of a move nobody was making any more.
+    const onChange = vi.fn();
+    render(<DateRangeInput {...props} shortcuts onChange={onChange} />);
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    await userEvent.click(screen.getAllByText('15')[0]);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Today' }));
+    const [shortcutStart, shortcutEnd] = onChange.mock.calls.at(-1)![0];
+    expect(shortcutStart).not.toBeNull();
+    expect(shortcutEnd).not.toBeNull();
+
+    // Re-open and click a day: an ordinary pick, starting a range on that day
+    // rather than moving the start that was held before the shortcut.
+    await userEvent.click(screen.getByPlaceholderText('from'));
+    const dayCells = screen.getAllByText('10');
+    await userEvent.click(dayCells[0]);
+    const settled = onChange.mock.calls.at(-1)![0];
+    expect(settled[0]!.getDate()).toBe(10);
   });
 });
 
